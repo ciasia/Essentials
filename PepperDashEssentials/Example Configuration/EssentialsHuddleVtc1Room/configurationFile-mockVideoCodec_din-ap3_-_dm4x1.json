@@ -122,7 +122,7 @@
             {
                 "name": "HD-MD4x1-4k-E HDMI Switch 1",
                 "key": "hdMd4x14kE-1",
-                "type": "hdMd4x14kE",
+                "type": "hdmd4x14ke-bridgeable",
                 "properties": {
                     "control": {
                         "params": {
