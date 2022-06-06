@@ -280,16 +280,22 @@ namespace PepperDash.Essentials
 
         public override bool CustomActivate()
         {
+            Debug.Console(1, this, "CustomActivate - Occupancy");
+
             // Add Occupancy object from config
             if (PropertiesConfig.Occupancy != null)
                 this.SetRoomOccupancy(DeviceManager.GetDeviceForKey(PropertiesConfig.Occupancy.DeviceKey) as
                     IOccupancyStatusProvider, PropertiesConfig.Occupancy.TimeoutMinutes);
 
+            Debug.Console(1, this, "CustomActivate - Logo");
             this.LogoUrlLightBkgnd = PropertiesConfig.LogoLight.GetLogoUrlLight();
             this.LogoUrlDarkBkgnd = PropertiesConfig.LogoDark.GetLogoUrlDark();
+            Debug.Console(1, this, "CustomActivate - DefaultSourceItem");
             this.DefaultSourceItem = PropertiesConfig.DefaultSourceItem;
+            Debug.Console(1, this, "CustomActivate - Volumes");
             this.DefaultVolume = (ushort)(PropertiesConfig.Volumes.Master.Level * 65535 / 100);
 
+            Debug.Console(1, this, "CustomActivate - done");
             return base.CustomActivate();
         }
 

@@ -218,8 +218,16 @@ namespace PepperDash.Essentials
             var mainDriver = new EssentialsPanelMainInterfaceDriver(Panel, _propertiesConfig);
             // Then the sub drivers
 
-            // spin up different room drivers depending on room type
             var room = DeviceManager.GetDeviceForKey(roomKey);
+            // rooms       have  "type": "huddle",
+            // touchpanels have "defaultRoomKey": "room1"
+            if(room == null)
+                Debug.Console(0, this, "Room type '{0}' ", "null");
+            else
+                Debug.Console(0, this, "Room type '{0}' ", room.GetType());
+
+
+            // spin up different room drivers depending on room type
             if (room is IEssentialsHuddleSpaceRoom)
             {
                 // Screen Saver Driver
@@ -315,6 +323,16 @@ namespace PepperDash.Essentials
                 }
 
                 LoadAndShowDriver(mainDriver);
+            }
+            else if (room is IEssentialsRoom) // a room that doesn't fall under the previous cases, most likely a plugin
+            {
+                Debug.Console(0, this, "TODO [  ] Add code for plugin style AvFunctionsDriver driver for room '{0}'", roomKey);
+
+                // Screen Saver Driver
+                mainDriver.ScreenSaverController = new ScreenSaverController(mainDriver, _propertiesConfig);
+
+                // Header Driver
+                mainDriver.HeaderDriver = new EssentialsHeaderDriver(mainDriver, _propertiesConfig);
             }
             else
             {

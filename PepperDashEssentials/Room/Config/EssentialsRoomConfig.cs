@@ -23,6 +23,20 @@ namespace PepperDash.Essentials.Room.Config
 		{
 			var typeName = roomConfig.Type.ToLower();
 
+            Debug.Console(0, Debug.ErrorLogLevel.Notice, "GetRoomObject: {0}", typeName);
+            // Try local factories first
+            Device newDev = null;
+
+            if (newDev == null)
+                newDev = PepperDash.Essentials.Core.DeviceFactory.GetDevice(roomConfig) as EssentialsRoomBase;
+
+            if (newDev != null)
+            {
+                Debug.Console(0, Debug.ErrorLogLevel.Notice, "Returning roomObject from device manager");
+                return newDev;
+            }
+            Debug.Console(0, Debug.ErrorLogLevel.Notice, "Looking for room type class for the roomObject");
+
 			if (typeName == "huddle")
 			{
                 return new EssentialsHuddleSpaceRoom(roomConfig);
@@ -43,8 +57,16 @@ namespace PepperDash.Essentials.Room.Config
             {
                 return new EssentialsCombinedHuddleVtc1Room(roomConfig);
             }
+            if (typeName == "techroom")
+            {
+                return new EssentialsTechRoom(roomConfig);
+            }
+            if (typeName == "councilchambers")
+            {
+                return new EssentialsCouncilChambers(roomConfig);
+            }
 
-		    return typeName != "techroom" ? null : new EssentialsTechRoom(roomConfig);
+		    return null;
 		}
 
         /// <summary>

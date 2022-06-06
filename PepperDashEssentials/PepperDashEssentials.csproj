@@ -129,6 +129,8 @@
     <Compile Include="Bridges\JoinMaps\SetTopBoxControllerJoinMap.cs" />
     <Compile Include="Bridges\JoinMaps\StatusSignControllerJoinMap.cs" />
     <Compile Include="Bridges\JoinMaps\SystemMonitorJoinMap.cs" />
+    <Compile Include="CustomSystems\EssentialsCouncilChambers.cs" />
+    <Compile Include="CustomSystems\IEssentialsCouncilChambers.cs" />
     <Compile Include="Factory\DeviceFactory.cs" />
     <Compile Include="Devices\Amplifier.cs" />
     <Compile Include="ControlSystem.cs" />
@@ -152,6 +154,7 @@
     <Compile Include="Room\Types\EssentialsTechRoom.cs" />
     <Compile Include="Room\Types\Interfaces\IEssentialsHuddleSpaceRoom.cs" />
     <Compile Include="Room\Types\Interfaces\IEssentialsHuddleVtc1Room.cs" />
+    <Compile Include="Room\Types\Interfaces\IEssentialsRoomFusionSystemController.cs" />
     <Compile Include="UIDrivers\Environment Drivers\EssentialsEnvironmentDriver.cs" />
     <Compile Include="UIDrivers\Environment Drivers\EssentialsLightingDriver.cs" />
     <Compile Include="UIDrivers\Environment Drivers\EssentialsShadeDriver.cs" />

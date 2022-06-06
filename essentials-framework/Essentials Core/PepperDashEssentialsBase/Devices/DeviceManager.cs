@@ -229,33 +229,33 @@ namespace PepperDash.Essentials.Core
 
 		public static void AddDevice(IKeyed newDev)
 		{
-		    try
-		    {
-		        if (!DeviceCriticalSection.TryEnter())
-		        {
-		            Debug.Console(0, Debug.ErrorLogLevel.Error, "Currently unable to add devices to Device Manager. Please try again");
-		            return;
-		        }
-		        // Check for device with same key
-		        //var existingDevice = _Devices.FirstOrDefault(d => d.Key.Equals(newDev.Key, StringComparison.OrdinalIgnoreCase));
-		        ////// If it exists, remove or warn??
-		        //if (existingDevice != null)
+            try
+            {
+                if (!DeviceCriticalSection.TryEnter())
+                {
+                    Debug.Console(0, Debug.ErrorLogLevel.Error, "Currently unable to add devices to Device Manager. Please try again");
+                    return;
+                }
+                // Check for device with same key
+                //var existingDevice = _Devices.FirstOrDefault(d => d.Key.Equals(newDev.Key, StringComparison.OrdinalIgnoreCase));
+                ////// If it exists, remove or warn??
+                //if (existingDevice != null)
 
-		        if (!AddDeviceEnabled)
-		        {
-		            Debug.Console(0, Debug.ErrorLogLevel.Error, "All devices have been activated. Adding new devices is not allowed.");
-		            return;
-		        }
+                if (!AddDeviceEnabled)
+                {
+                    Debug.Console(0, Debug.ErrorLogLevel.Error, "All devices have been activated. Adding new devices is not allowed.");
+                    return;
+                }
 
-		        if (Devices.ContainsKey(newDev.Key))
-		        {
-		            Debug.Console(0, newDev, "WARNING: A device with this key already exists.  Not added to manager");
-		            return;
-		        }
-		        Devices.Add(newDev.Key, newDev);
-		        //if (!(_Devices.Contains(newDev)))
-		        //    _Devices.Add(newDev);
-		    }
+                if (Devices.ContainsKey(newDev.Key))
+                {
+                    Debug.Console(0, newDev, "WARNING: A device with this key already exists.  Not added to manager");
+                    return;
+                }
+                Devices.Add(newDev.Key, newDev);
+                //if (!(_Devices.Contains(newDev)))
+                //    _Devices.Add(newDev);
+            }
 		    finally
 		    {
 		        DeviceCriticalSection.Leave();

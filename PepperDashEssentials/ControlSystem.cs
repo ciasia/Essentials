@@ -20,6 +20,7 @@ using PepperDash.Essentials.Room.Config;
 
 using Newtonsoft.Json;
 using PepperDash.Essentials.Core.DeviceTypeInterfaces;
+using PepperDashEssentials.Room.Types.Interfaces;
 
 namespace PepperDash.Essentials
 {
@@ -461,6 +462,8 @@ namespace PepperDash.Essentials
         /// </summary>
         public void LoadRooms()
         {
+            Debug.Console(0, Debug.ErrorLogLevel.Notice, "LoadRooms");
+
             if (ConfigReader.ConfigObject.Rooms == null)
             {
                 Debug.Console(0, Debug.ErrorLogLevel.Notice, "Notice: Configuration contains no rooms - Is this intentional?  This may be a valid configuration.");
@@ -489,7 +492,7 @@ namespace PepperDash.Essentials
                             fusionJoinMapKey = fusionConfig.JoinMapKey;
                         }
                     }
-
+              
                     if (room is IEssentialsHuddleSpaceRoom)
                     {
                         DeviceManager.AddDevice(room);
@@ -528,6 +531,21 @@ namespace PepperDash.Essentials
 
                         CreateMobileControlBridge(room);
                     }
+
+                    else if (room is IEssentialsRoom) // a room that doesn't fall under the previous cases, most likely a plugin
+                    {
+                        DeviceManager.AddDevice(room);
+
+                        Debug.Console(0, Debug.ErrorLogLevel.Notice, "Room is {0}, attempting to add to DeviceManager with Fusion with IP-ID {1:X2}", room.GetType(), fusionIpId);
+                        // TODO [ ] create an IFusionSystemControllerBase and implement 
+                        //if (room is IEssentialsRoomFusionSystemController)
+                        //    DeviceManager.AddDevice(new Core.Fusion.EssentialsHuddleSpaceFusionSystemControllerBase(room, fusionIpId, fusionJoinMapKey));
+
+                        Debug.Console(0, Debug.ErrorLogLevel.Notice, "Attempting to build Mobile Control Bridge...");
+
+                        CreateMobileControlBridge(room);
+                    }
+
                     else
                     {
                         Debug.Console(0, Debug.ErrorLogLevel.Notice, "Room is NOT EssentialsRoom, attempting to add to DeviceManager w/o Fusion");
