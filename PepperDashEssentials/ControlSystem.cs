@@ -64,7 +64,8 @@ namespace PepperDash.Essentials
                     Debug.Console(2, "******************* InitializeSystem() Exiting **********************");
                 };
 
-                _initializeEvent.Wait(30000);
+                //_initializeEvent.Wait(30000);
+                _initializeEvent.Wait(3000); // hack, when no endpoints
             }
         }
 
@@ -531,19 +532,27 @@ namespace PepperDash.Essentials
 
                         CreateMobileControlBridge(room);
                     }
+                    // custom room testing - not needed if Fusion not required
+                    //else if (room is EssentialsCouncilChambers) 
+                    //{
+                    //    Debug.Console(0, Debug.ErrorLogLevel.Notice,
+                    //       "Room is EssentialsCouncilChambers, Attempting to add to DeviceManager with Fusion with IP-ID {0:X2}", fusionIpId);
+                    //    DeviceManager.AddDevice(room);
+                    //    // not adding Fusion
+                    //}
 
                     else if (room is IEssentialsRoom) // a room that doesn't fall under the previous cases, most likely a plugin
                     {
                         DeviceManager.AddDevice(room);
 
-                        Debug.Console(0, Debug.ErrorLogLevel.Notice, "Room is {0}, attempting to add to DeviceManager with Fusion with IP-ID {1:X2}", room.GetType(), fusionIpId);
+                        Debug.Console(0, Debug.ErrorLogLevel.Notice, "Room is {0}, NOT attempting to add to DeviceManager with Fusion with IP-ID {1:X2}", room.GetType(), fusionIpId);
                         // TODO [ ] create an IFusionSystemControllerBase and implement 
                         //if (room is IEssentialsRoomFusionSystemController)
                         //    DeviceManager.AddDevice(new Core.Fusion.EssentialsHuddleSpaceFusionSystemControllerBase(room, fusionIpId, fusionJoinMapKey));
 
                         Debug.Console(0, Debug.ErrorLogLevel.Notice, "Attempting to build Mobile Control Bridge...");
 
-                        CreateMobileControlBridge(room);
+                        //CreateMobileControlBridge(room);
                     }
 
                     else

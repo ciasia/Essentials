@@ -11,6 +11,11 @@ using PepperDash.Essentials;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 
+// custom rooms made by RRD
+using PepperDash.Essentials.MinimalRoom;
+using PepperDash.Essentials.DmpsRoom;
+using PepperDash.Essentials.DspRoom;
+
 namespace PepperDash.Essentials.Room.Config
 {
 	public class EssentialsRoomConfigHelper
@@ -61,10 +66,28 @@ namespace PepperDash.Essentials.Room.Config
             {
                 return new EssentialsTechRoom(roomConfig);
             }
+            // new types made by RRD
+            // TODO [  ] - convert to plugins when room framework is implemented
+            if (typeName == "dsp")
+            {
+                return new EssentialsDspRoom(roomConfig);
+            }
+            if (typeName == "minimal")
+            {
+                return new EssentialsMinimalRoom(roomConfig);
+            }
+            if (typeName == "dmpsroom")
+            {
+                return new EssentialsDmpsRoom(roomConfig);
+            }
             if (typeName == "councilchambers")
             {
                 return new EssentialsCouncilChambers(roomConfig);
             }
+            //if (typeName == "hello world")
+            //{
+            //    return new EssentialsHelloWorld(roomConfig);
+            //}
 
 		    return null;
 		}

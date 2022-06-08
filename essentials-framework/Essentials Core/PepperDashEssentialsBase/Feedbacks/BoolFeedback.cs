@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro;
+using PepperDash.Core;
 
 namespace PepperDash.Essentials.Core
 {
@@ -154,6 +155,7 @@ namespace PepperDash.Essentials.Core
 
         void UpdateSig(BoolInputSig sig)
         {
+            Debug.Console(2, "UpdateSig {0}:{1}", sig.Number, sig.BoolValue);
             sig.BoolValue = _BoolValue;
         }
 

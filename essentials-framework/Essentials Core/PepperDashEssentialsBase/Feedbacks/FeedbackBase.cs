@@ -73,8 +73,7 @@ namespace PepperDash.Essentials.Core
         //{
         //    if (OutputChange != null) OutputChange(this, EventArgs.Empty);
         //}
-
-        protected void OnOutputChange(bool value)
+         protected void OnOutputChange(bool value)
         {
             if (OutputChange != null) OutputChange(this, new FeedbackEventArgs(value));
         }

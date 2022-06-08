@@ -201,7 +201,10 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         void SetUpMobileControl()
         {
+            Debug.Console(1, this, "SetUpMobileControl");
+
             var mcBridgeKey = string.Format("mobileControlBridge-{0}", Key);
+            Debug.Console(1, this, mcBridgeKey);
             var mcBridge = DeviceManager.GetDeviceForKey(mcBridgeKey);
             if (mcBridge == null)
             {
@@ -211,6 +214,7 @@ namespace PepperDash.Essentials.Core
             }
             else
             {
+                Debug.Console(1, this, "*********************Mobile Control Bridge found for this room");
                 MobileControlRoomBridge = mcBridge as IMobileControlRoomBridge;
                 Debug.Console(1, this, "*********************Mobile Control Bridge found and enabled for this room");
                 IsMobileControlEnabled = true;

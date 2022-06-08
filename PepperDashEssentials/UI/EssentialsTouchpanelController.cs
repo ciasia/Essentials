@@ -11,6 +11,9 @@ using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.PageManagers;
+using PepperDash.Essentials.MinimalRoom;
+using PepperDash.Essentials.DmpsRoom;
+using PepperDash.Essentials.DspRoom;
 
 namespace PepperDash.Essentials
 {
@@ -324,6 +327,31 @@ namespace PepperDash.Essentials
 
                 LoadAndShowDriver(mainDriver);
             }
+            // custom rooms made by RRD
+            else if (room is IEssentialsDspRoom)
+            {
+                Debug.Console(0, this, "Adding DSP Room AV driver");
+                var avDriver = new EssentialsDspRoomPanelAvFunctionsDriver(mainDriver, _propertiesConfig);
+                avDriver.DefaultRoomKey = roomKey;
+                mainDriver.AvDriver = avDriver;
+                avDriver.CurrentRoom = room as IEssentialsDspRoom;
+            }
+            else if (room is IEssentialsMinimalRoom)
+            {
+                Debug.Console(0, this, "Adding Minimal Room AV driver");
+                var avDriver = new EssentialsMinimalRoomPanelAvFunctionsDriver(mainDriver, _propertiesConfig);
+                avDriver.DefaultRoomKey = roomKey;
+                //mainDriver.AvDriver = avDriver;
+                //avDriver.CurrentRoom = room as IEssentialsMinimalRoom;
+            }
+            else if (room is IEssentialsDmpsRoom)
+            {
+                Debug.Console(0, this, "Adding DMPS Room AV driver");
+                var avDriver = new EssentialsDmpsRoomPanelAvFunctionsDriver(mainDriver, _propertiesConfig);
+                avDriver.DefaultRoomKey = roomKey;
+                //mainDriver.AvDriver = avDriver;
+                //avDriver.CurrentRoom = room as IEssentialsDmpsRoom;
+            }
             else if (room is IEssentialsRoom) // a room that doesn't fall under the previous cases, most likely a plugin
             {
                 Debug.Console(0, this, "TODO [  ] Add code for plugin style AvFunctionsDriver driver for room '{0}'", roomKey);
@@ -333,6 +361,21 @@ namespace PepperDash.Essentials
 
                 // Header Driver
                 mainDriver.HeaderDriver = new EssentialsHeaderDriver(mainDriver, _propertiesConfig);
+
+                // AV Driver
+                //var avDriver = new EssentialsPanelAvFunctionsDriver(mainDriver, _propertiesConfig);
+                //avDriver.DefaultRoomKey = roomKey;
+                //mainDriver.AvDriver = avDriver;
+                //avDriver.CurrentRoom = room as IEssentialsHuddleSpaceRoom;
+
+                //// Environment Driver
+                //if (avDriver.CurrentRoom.PropertiesConfig.Environment != null && avDriver.CurrentRoom.PropertiesConfig.Environment.DeviceKeys.Count > 0)
+                //{
+                //    Debug.Console(0, this, "Adding environment driver");
+                //    mainDriver.EnvironmentDriver = new EssentialsEnvironmentDriver(mainDriver, _propertiesConfig);
+
+                //    mainDriver.EnvironmentDriver.GetDevicesFromConfig(avDriver.CurrentRoom.PropertiesConfig.Environment);
+                //}
             }
             else
             {

@@ -25,7 +25,8 @@ namespace PepperDash.Essentials.Core
 		/// <returns>The Sig, sig</returns>
 		public static BoolOutputSig SetBoolSigAction(this BoolOutputSig sig, Action<bool> a)
 		{
-			sig.UserObject = a;
+            Debug.Console(2, "SetBoolSigAction [{0}]", sig.Number);
+            sig.UserObject = a;
 			return sig;
 		}
 
@@ -38,6 +39,8 @@ namespace PepperDash.Essentials.Core
 		/// <returns></returns>
 		public static BoolOutputSig SetBoolSigAction(this BasicTriList tl, uint sigNum, Action<bool> a)
 		{
+            Debug.Console(2, "SetBoolSigAction [{0}:{1}]", tl, sigNum);
+
 			return tl.BooleanOutput[sigNum].SetBoolSigAction(a);
 		}
 
@@ -232,6 +235,7 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         public static void SetBool(this BasicTriList tl, uint sigNum, bool value)
         {
+            Debug.Console(2, "SetBool [{0}:{1}:{2}]", tl, sigNum, value);
             tl.BooleanInput[sigNum].BoolValue = value;
         }
 
