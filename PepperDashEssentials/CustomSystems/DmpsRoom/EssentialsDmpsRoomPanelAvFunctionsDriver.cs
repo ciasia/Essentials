@@ -20,6 +20,9 @@ namespace PepperDash.Essentials.DmpsRoom
 
         CrestronTouchpanelPropertiesConfig Config;
 
+        private SmartObject SwitcherInputsSO;
+        private SmartObject SwitcherOutputsSO;
+
         /// <summary>
         /// 
         /// </summary>
@@ -57,6 +60,8 @@ namespace PepperDash.Essentials.DmpsRoom
             PowerButtonSig = TriList.BooleanInput[EssentialsDmpsRoomJoins.PowerButtonPress];
             //TriList.SetBoolSigAction(EssentialsMinimalRoomJoins.PowerButtonPress, PowerButtonPress);
             ToggleIsOnFeedback.LinkInputSig(PowerButtonSig);
+
+
             
         }
 

@@ -14,6 +14,7 @@ using PepperDash.Essentials.Devices.Common.Codec;
 using PepperDash.Essentials.Devices.Common.VideoCodec;
 using PepperDash.Essentials.Devices.Common.AudioCodec;
 using PepperDash.Essentials.Core.DeviceTypeInterfaces;
+using PepperDash.Essentials.DM;
 
 namespace PepperDash.Essentials.DmpsRoom
 {
@@ -27,6 +28,8 @@ namespace PepperDash.Essentials.DmpsRoom
         {
             try
             {
+                Debug.Console(1, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+                Debug.Console(1, this, "Creating EssentialsDmpsRoom");
                 PropertiesConfig = JsonConvert.DeserializeObject<EssentialsDmpsRoomPropertiesConfig>
                     (config.Properties.ToString());
                 
@@ -42,6 +45,51 @@ namespace PepperDash.Essentials.DmpsRoom
         {
             try
             {
+                var cs_ = DeviceManager.GetDeviceForKey("processor-avRouting");
+                Debug.Console(0, this, "controlsystem.type: {0}", cs_.ToString());
+                if (cs_ is DmpsRoutingController)
+                {
+                    Debug.Console(0, this, "controlsystem is DmpsRoutingController");
+                    var router_ = cs_ as DmpsRoutingController;
+                    Debug.Console(0, this, "InputNames");
+                    foreach (var i in router_.InputNames)
+                    {
+                        Debug.Console(0, this, "InputNames [{0}] {1}", i.Key, i.Value);
+                    }
+                    Debug.Console(0, this, "OutputNames");
+                    foreach (var i in router_.OutputNames)
+                    {
+                        Debug.Console(0, this, "OutputNames [{0}] {1}", i.Key, i.Value);
+                    }
+
+                    Debug.Console(0, this, "InputPorts");
+                    foreach (var i in router_.InputPorts)
+                    {
+                        Debug.Console(0, this, "InputPorts key: {0}", i.Key);
+                        Debug.Console(0, this, "InputPorts Port.ToString: {0}", i.Port.ToString());
+                    }
+                    Debug.Console(0, this, "OutputPorts");
+                    foreach (var o in router_.OutputPorts)
+                    {
+                        Debug.Console(0, this, "OutputPorts key: {0}", o.Key);
+                        Debug.Console(0, this, "OutputPorts Port.ToString: {0}", o.Port.ToString());
+                    }
+
+                    Debug.Console(0, this, "VolumeControls");
+                    foreach (var o in router_.VolumeControls)
+                    {
+                        Debug.Console(0, this, "VolumeControls key: {0}", o.Key);
+                        Debug.Console(0, this, "VolumeControls Output.Number: {0}", o.Value.Output.Number);
+                        Debug.Console(0, this, "VolumeControls OutputVolume.Name: {0}", o.Value.Output.Volume.Name);
+                        Debug.Console(0, this, "VolumeControls OutputVolume.Number: {0}", o.Value.Output.Volume.Number);
+                    }
+
+                    Debug.Console(0, this, "Microphones {0}", router_.Microphones);
+
+                }
+                else
+                    Debug.Console(0, this, "controlsystem is NOT DmpsRoutingController");
+
             }
             catch (Exception e)
             {
