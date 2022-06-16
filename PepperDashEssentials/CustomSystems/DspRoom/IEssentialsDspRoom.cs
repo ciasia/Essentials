@@ -8,11 +8,14 @@ using PepperDash.Essentials.Room.Config;
 
 namespace PepperDash.Essentials.DspRoom
 {
-    public interface IEssentialsDspRoom : IEssentialsRoom
+    public interface IEssentialsDspRoom : IEssentialsRoom, IHasCurrentLevelInfoChange
     {
         EssentialsDspRoomPropertiesConfig PropertiesConfig { get; }
 
-        IBasicVolumeControls CurrentVolumeControls { get; }
-        event EventHandler<VolumeDeviceChangeEventArgs> CurrentVolumeDeviceChange;
+        AudioDeviceSingleControlManager MasterVolumeControl { get; set; }
+        event EventHandler<VolumeDeviceChangeEventArgs> MasterVolumeDeviceChange;
+
+        Dictionary<string, AudioDeviceSingleControlManager> VolumeControlList { get; set; }
+        event EventHandler<KeyedVolumeDeviceChangeEventArgs> VolumeDeviceListChange;
     }
 }

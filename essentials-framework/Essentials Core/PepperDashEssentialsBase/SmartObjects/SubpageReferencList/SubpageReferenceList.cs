@@ -143,8 +143,23 @@ namespace PepperDash.Essentials.Core
 		/// <returns>A Sig or null if the numbers are out of range</returns>
 		public UShortOutputSig GetUShortOutputSig(uint index, uint sigNum)
 		{
-			if (sigNum > UShortIncrement) return null;
-			return SRL.UShortOutput.FirstOrDefault(s => s.Name.Equals(GetBoolFeedbackSigName(index, sigNum)));
+            if (sigNum > UShortIncrement)
+            {
+                Debug.Console(2, "GetUShortOutputSig[{0}]: sigNum ({1}) > UShortIncrement ({2}), returning null", index, sigNum, UShortIncrement);
+                return null;
+            }
+            var name_ = GetUShortOutputSigName(index, sigNum);
+            if(name_ == null)
+                Debug.Console(2, "GetUShortOutputSig[{0}]: sigNum ({1}) name not found, returning null", index, sigNum);
+            var result_ = SRL.UShortOutput.FirstOrDefault(s => s.Name.Equals(name_));
+            if (result_ == null)
+            {
+                Debug.Console(2, "GetUShortOutputSig[{0}]: sigNum ({1}) name ({2}) not found, returning null", index, sigNum, name_);
+                foreach(var s in SRL.UShortOutput)
+                    Debug.Console(2, "GetUShortOutputSig({0},{1})number ({2}) name ({3}) ", index, sigNum, s.Number, s.Name);
+
+            }
+			return result_;
 		}
 
 		/// <summary>
@@ -159,7 +174,7 @@ namespace PepperDash.Essentials.Core
 		public StringOutputSig GetStringOutputSig(uint index, uint sigNum)
 		{
 			if (sigNum > StringIncrement) return null;
-			return SRL.StringOutput.FirstOrDefault(s => s.Name.Equals(GetBoolFeedbackSigName(index, sigNum)));
+            return SRL.StringOutput.FirstOrDefault(s => s.Name.Equals(GetStringOutputSigName(index, sigNum)));
 		}
 
 		/// <summary>

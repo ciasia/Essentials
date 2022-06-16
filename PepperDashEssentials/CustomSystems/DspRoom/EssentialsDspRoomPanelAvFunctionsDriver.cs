@@ -21,14 +21,12 @@ namespace PepperDash.Essentials.DspRoom
 
         CrestronTouchpanelPropertiesConfig Config;
 
-        /// <summary>
-        /// 
-        /// </summary>
+        private SmartObject VolumeSO;
+        public SubpageReferenceList VolumeSrl { get; set; }
+        private uint _volumeListCount;
+
         public string DefaultRoomKey { get; set; }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public IEssentialsDspRoom CurrentRoom
         {
             get { return _CurrentRoom; }
@@ -47,16 +45,10 @@ namespace PepperDash.Essentials.DspRoom
             Debug.Console(1, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
             Debug.Console(1, "Loading EssentialsDspRoomPanelAvFunctionsDriver");
 
-            //ShowVolumeGauge = true;
-
-            // One-second pulse extender for volume gauge
-            //VolumeGaugeFeedback = new BoolFeedbackPulseExtender(1500);
-            //VolumeGaugeFeedback.Feedback
-            //    .LinkInputSig(TriList.BooleanInput[UIBoolJoin.VolumeGaugePopupVisible]);
-
-            //VolumeButtonsPopupFeedback = new BoolFeedbackPulseExtender(4000);
-            //VolumeButtonsPopupFeedback.Feedback
-            //    .LinkInputSig(TriList.BooleanInput[UIBoolJoin.VolumeButtonPopupVisible]);
+            VolumeSO = TriList.SmartObjects[EssentialsDspRoomJoins.faderSrl];
+            Debug.Console(2, "DspRoom AVUIFunctionsDriver, VolumeSO {0}= null", VolumeSO == null ? "=" : "!");
+            VolumeSrl = new SubpageReferenceList(TriList, EssentialsDspRoomJoins.faderSrl, 2, 1, 1);
+            Debug.Console(2, "DspRoom AVUIFunctionsDriver, VolumeSrl {0}= null", VolumeSrl == null ? "=" : "!");
         }
 
 		/// <summary>
@@ -82,7 +74,6 @@ namespace PepperDash.Essentials.DspRoom
             // Volume related things
             TriList.SetSigFalseAction(UIBoolJoin.VolumeDefaultPress, () => CurrentRoom.SetDefaultLevels());
             TriList.SetString(UIStringJoin.AdvancedVolumeSlider1Text, "Room Volume");
-
             base.Show();
         }
 
@@ -108,7 +99,8 @@ namespace PepperDash.Essentials.DspRoom
             if (_CurrentRoom != null)
             {
                 // Disconnect current room
-                _CurrentRoom.CurrentVolumeDeviceChange -= this.CurrentRoom_CurrentAudioDeviceChange;
+                _CurrentRoom.MasterVolumeDeviceChange -= this.CurrentRoom_CurrentMasterAudioDeviceChange;
+                _CurrentRoom.VolumeDeviceListChange -= this.CurrentRoom_CurrentAudioDeviceListChanged;
                 ClearAudioDeviceConnections();
             }
             //else
@@ -122,7 +114,8 @@ namespace PepperDash.Essentials.DspRoom
                 TriList.StringInput[UIStringJoin.CurrentRoomName].StringValue = _CurrentRoom.Name;
 
                 Debug.Console(1, "DspRoom AVUIFunctionsDriver - subscribing to CurrentVolumeDeviceChange");
-                _CurrentRoom.CurrentVolumeDeviceChange += CurrentRoom_CurrentAudioDeviceChange;
+                _CurrentRoom.MasterVolumeDeviceChange += CurrentRoom_CurrentMasterAudioDeviceChange;
+                _CurrentRoom.VolumeDeviceListChange += CurrentRoom_CurrentAudioDeviceListChanged;
                 RefreshAudioDeviceConnections();
             }
             else
@@ -152,6 +145,100 @@ namespace PepperDash.Essentials.DspRoom
         #endregion
 
         #region volume
+        /// <summary>
+        /// Called from button presses on level, where We can assume we want
+        /// to change to the proper level.
+        /// </summary>
+        /// <param name="key">The key name of the route to run</param>
+        void SetVolume(string key, ushort value)
+        {
+            Debug.Console(1, "DspRoom AVUIFunctionsDriver - UiLevelSet {0} {1}", key, value);
+            var dev_ = CurrentRoom.VolumeControlList[key].CurrentControl as IBasicVolumeWithFeedback;
+            if (dev_ != null)
+                dev_.SetVolume(value);
+            else
+                Debug.Console(1, "DspRoom AVUIFunctionsDriver - CurrentVolumeControls == null");
+        }
+
+        void MuteToggle(string key)
+        {
+            Debug.Console(1, "DspRoom AVUIFunctionsDriver - UiLevelMuteToggle {0}", key);
+            var dev_ = CurrentRoom.VolumeControlList[key].CurrentControl as IBasicVolumeWithFeedback;
+            if (dev_ != null)
+                dev_.MuteToggle();
+            else
+                Debug.Console(1, "DspRoom AVUIFunctionsDriver - CurrentVolumeControls == null");
+        }
+
+        void RefreshVolumeList()
+        {
+            try
+            {
+                var config = CurrentRoom.PropertiesConfig.VolumeList;
+                var volList = config.OrderBy(kv => kv.Value.Order);
+
+                // Setup sources list			
+                VolumeSrl.Clear();
+                uint i = 1; // counter for UI list
+                foreach (var kvp in volList)
+                {
+                    var volConfig = kvp.Value;
+                    var key_ = volConfig.LevelKey;
+                    Debug.Console(1, "$$$$ RefreshVolumeList {0}, {1} {2}", key_, volConfig.Label, volConfig.IncludeInVolumeList);
+                    Debug.Console(2, "DspRoom RefreshVolumeList, VolumeSrl {0}= null", VolumeSrl == null ? "=" : "!");
+				    // Skip sources marked as not included, and filter list of non-sharable sources when in call
+				    // or on share screen
+                    if (!volConfig.IncludeInVolumeList) 
+				    {
+                        Debug.Console(1, "Skipping {0}", volConfig.Label);
+					    continue;
+				    }
+                    if (CurrentRoom.VolumeControlList.ContainsKey(key_))
+                    {
+                        var dev_ = CurrentRoom.VolumeControlList[key_].CurrentControl;
+                        Debug.Console(2, "DspRoom RefreshVolumeList - VolumeControlList[{0}].CurrentControl {1}= null", key_, dev_ == null ? "=" : "!");
+                        if (dev_ != null) // connect buttons
+                        {
+                            var fbDev_ = dev_ as IBasicVolumeWithFeedback;
+                            //Debug.Console(2, "DspRoom RefreshVolumeList, {0} fbDev_ {1}= null", key_, fbDev_ == null ? "=" : "!");
+                            var level_ = new SubpageReferenceListLevelItem(i, VolumeSrl, volConfig,
+                                  u => { fbDev_.SetVolume(u); },
+                                  b => { if (!b) fbDev_.MuteToggle(); }
+                                  );
+                            //Debug.Console(2, "DspRoom RefreshVolumeList, {0} level_ {1}= null", key_, level_ == null ? "=" : "!");
+                            VolumeSrl.AddItem(level_); // add to the SRL
+                            //Debug.Console(2, "DspRoom RefreshVolumeList, {0} VolumeSrl added level", key_);
+                            level_.RegisterForLevelChange(_CurrentRoom);
+                            //Debug.Console(2, "DspRoom RefreshVolumeList, {0} RegisterForLevelChange", key_);
+                            string joinKey_ = String.Format("Item {0} Visible", i);
+                            //Debug.Console(2, "DspRoom RefreshVolumeList Setting SmartObject {0}", joinKey_);
+                            VolumeSO.BooleanInput[joinKey_].BoolValue = true;
+
+                            if (fbDev_ == null) // this should catch both IBasicVolume and IBasicVolumeWithFeeback
+                                VolumeSrl.UShortInputSig(i, 1).UShortValue = (ushort)0;
+                            else
+                            {
+                                // feedbacks
+                                fbDev_.MuteFeedback.LinkInputSig(VolumeSrl.BoolInputSig(i, 1));
+                                fbDev_.VolumeLevelFeedback.LinkInputSig(VolumeSrl.UShortInputSig(i, 1));
+                            }
+                        }
+                        else
+                            Debug.Console(1, "DspRoom AVUIFunctionsDriver - CurrentVolumeControls {0} == null", key_);
+                    }
+                    else
+                        Debug.Console(1, "DspRoom AVUIFunctionsDriver - VolumeControlList.ContainsKey({0}) == false", key_);
+                    i++;
+			    }
+                _volumeListCount = (i - 1);
+                VolumeSrl.Count = (ushort)_volumeListCount;
+            }
+            catch (Exception e)
+            {
+                Debug.Console(1, "RefreshVolumeList ERROR: {0}", e.Message);
+            }
+		}
+
 
         /// <summary>
         /// Attaches the buttons and feedback to the room's current audio device
@@ -159,16 +246,11 @@ namespace PepperDash.Essentials.DspRoom
         void RefreshAudioDeviceConnections()
         {
             Debug.Console(1, "DspRoom AVUIFunctionsDriver - RefreshAudioDeviceConnections");
-            var dev = CurrentRoom.CurrentVolumeControls;
+            var dev = CurrentRoom.MasterVolumeControl.CurrentControl;
             if (dev != null) // connect buttons
             {
                 Debug.Console(1, "DspRoom AVUIFunctionsDriver - CurrentVolumeControls connect buttons");
                 TriList.SetBoolSigAction(UIBoolJoin.VolumeUpPress, VolumeUpPress);
-                //TriList.SetBoolSigAction(UIBoolJoin.VolumeUpPress, b =>
-                //    {
-                //        Debug.Console(1, "DspRoom AVUIFunctionsDriver - Action aVolumeUpPress {0}", b);
-                //        VolumeUpPress(b);
-                //    });
                 TriList.SetBoolSigAction(UIBoolJoin.VolumeDownPress, VolumeDownPress);
                 TriList.SetSigFalseAction(UIBoolJoin.Volume1ProgramMutePressAndFB, dev.MuteToggle);
             }
@@ -188,6 +270,8 @@ namespace PepperDash.Essentials.DspRoom
                 fbDev.VolumeLevelFeedback.LinkInputSig(
                     TriList.UShortInput[UIUshortJoin.VolumeSlider1Value]);
             }
+
+            RefreshVolumeList();
         }
 
         /// <summary>
@@ -200,19 +284,20 @@ namespace PepperDash.Essentials.DspRoom
             TriList.ClearBoolSigAction(UIBoolJoin.VolumeDownPress);
             TriList.ClearBoolSigAction(UIBoolJoin.Volume1ProgramMutePressAndFB);
 
-            var fDev = CurrentRoom.CurrentVolumeControls as IBasicVolumeWithFeedback;
+            var fDev = CurrentRoom.MasterVolumeControl as IBasicVolumeWithFeedback;
             if (fDev != null)
             {
                 TriList.ClearUShortSigAction(UIUshortJoin.VolumeSlider1Value);
                 fDev.VolumeLevelFeedback.UnlinkInputSig(
                     TriList.UShortInput[UIUshortJoin.VolumeSlider1Value]);
             }
+            VolumeSrl.Clear();
         }
 
         /// <summary>
         /// Handler for when the room's volume control device changes
         /// </summary>
-        void CurrentRoom_CurrentAudioDeviceChange(object sender, VolumeDeviceChangeEventArgs args)
+        void CurrentRoom_CurrentMasterAudioDeviceChange(object sender, VolumeDeviceChangeEventArgs args)
         {
             Debug.Console(1, "DspRoom AVUIFunctionsDriver - CurrentRoom_CurrentAudioDeviceChange");
             if (args.Type == ChangeType.WillChange)
@@ -221,6 +306,13 @@ namespace PepperDash.Essentials.DspRoom
                 RefreshAudioDeviceConnections();
         }
 
+         /// <summary>
+        /// Handler for when a room's volume control list device changes
+        /// </summary>
+        void CurrentRoom_CurrentAudioDeviceListChanged(object sender, VolumeDeviceChangeEventArgs args)
+        {
+            Debug.Console(1, "DspRoom AVUIFunctionsDriver - CurrentRoom_CurrentAudioDeviceListChanged {0}", args.NewDev.ToString());
+        }       
         /// <summary>
         /// Whether volume ramping from this panel will show the volume
         /// gauge popup.
@@ -260,8 +352,9 @@ namespace PepperDash.Essentials.DspRoom
             //if (ShowVolumeGauge)
                 VolumeGaugeFeedback.BoolValue = state;
             //VolumeButtonsPopupFeedback.BoolValue = state;
-            if (CurrentRoom.CurrentVolumeControls != null)
-                CurrentRoom.CurrentVolumeControls.VolumeUp(state);
+            var dev_ = CurrentRoom.MasterVolumeControl.CurrentControl;
+            if (dev_ != null)
+                dev_.VolumeUp(state);
             else
                 Debug.Console(1, "DspRoom AVUIFunctionsDriver - CurrentVolumeControls == null");
         }
@@ -277,8 +370,9 @@ namespace PepperDash.Essentials.DspRoom
             if (ShowVolumeGauge)
                 VolumeGaugeFeedback.BoolValue = state;
             //VolumeButtonsPopupFeedback.BoolValue = state;
-            if (CurrentRoom.CurrentVolumeControls != null)
-                CurrentRoom.CurrentVolumeControls.VolumeDown(state);
+            var dev_ = CurrentRoom.MasterVolumeControl.CurrentControl;
+            if (dev_ != null)
+                dev_.VolumeDown(state);
             else
                 Debug.Console(1, "DspRoom AVUIFunctionsDriver - CurrentVolumeControls == null");
         }

@@ -20,19 +20,41 @@ namespace PepperDash.Essentials.DspRoom
     public class EssentialsDspRoom : EssentialsRoomBase, IEssentialsDspRoom
     {
         public EssentialsDspRoomPropertiesConfig PropertiesConfig { get; private set; }
+
+        public AudioDeviceSingleControlManager MasterVolumeControl { get; set; }
+        public event EventHandler<VolumeDeviceChangeEventArgs> MasterVolumeDeviceChange;
         
+        public Dictionary<string, AudioDeviceSingleControlManager> VolumeControlList { get; set; }
+        public event EventHandler<KeyedVolumeDeviceChangeEventArgs> VolumeDeviceListChange;
+
         public EssentialsDspRoom(DeviceConfig config)
             : base(config)
         {
             try
             {
+                Debug.Console(1, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+                Debug.Console(1, this, "Creating EssentialsDspRoom");
                 PropertiesConfig = JsonConvert.DeserializeObject<EssentialsDspRoomPropertiesConfig>
                     (config.Properties.ToString());
 
                 var device_ = DeviceManager.GetDeviceForKey(PropertiesConfig.DefaultAudioKey);
                 //Debug.Console(1, this, "device_ {0}= null", device_ == null ? "=" : "!");
-                DefaultAudioDevice = DeviceManager.GetDeviceForKey(PropertiesConfig.DefaultAudioKey) as IBasicVolumeControls;
-                //Debug.Console(1, this, "DefaultAudioDevice {0}= null", DefaultAudioDevice == null ? "=" : "!");
+                // add the device for the main volume control slider
+                MasterVolumeControl = new AudioDeviceSingleControlManager(PropertiesConfig.DefaultAudioKey, device_ as IBasicVolumeControls);
+                MasterVolumeControl.CurrentDeviceChange += new EventHandler<KeyedVolumeDeviceChangeEventArgs>(MasterFader_CurrentDeviceChange);
+                Debug.Console(1, this, "Added MasterVolumeControl {0}", MasterVolumeControl.Key);
+
+                VolumeControlList = new Dictionary<string, AudioDeviceSingleControlManager>();
+                foreach (var d in PropertiesConfig.VolumeList)
+                {
+                    var key_ = d.Value.LevelKey;
+                    var dev_ = DeviceManager.GetDeviceForKey(key_);
+                    var control_ = new AudioDeviceSingleControlManager(key_, dev_ as IBasicVolumeControls);
+                    VolumeControlList.Add(key_, control_);
+                    control_.CurrentDeviceChange += new EventHandler<KeyedVolumeDeviceChangeEventArgs>(VolumeControlList_CurrentDeviceChange);
+                    Debug.Console(1, this, "Added VolumeControlList {0} {1}", control_.Key, key_);
+                    //Debug.Console(1, this, "VolumeControlList[{0}].CurrentControl {1}= null", key_, VolumeControlList[key_].CurrentControl == null ? "=" : "!");
+                }                
                 InitializeRoom();
             }
             catch (Exception e)
@@ -41,12 +63,25 @@ namespace PepperDash.Essentials.DspRoom
             }
         }
 
+        void VolumeControlList_CurrentDeviceChange(object sender, KeyedVolumeDeviceChangeEventArgs e)
+        {
+            Debug.Console(1, this, "VolumeControlList_CurrentDeviceChange {0}", e.Key);
+            //var dev_ = DeviceManager.GetDeviceForKey(e.Key);
+        }
+
+        void MasterFader_CurrentDeviceChange(object sender, KeyedVolumeDeviceChangeEventArgs e)
+        {
+            Debug.Console(1, this, "MasterFader_CurrentDeviceChange {0}", e.Key);
+            if (MasterVolumeDeviceChange != null)
+                MasterVolumeDeviceChange(this, e);
+        }
+
         public void InitializeRoom()
         {
             try
             {
                 Debug.Console(1, this, "InitializeRoom");
-                if (DefaultAudioDevice == null)
+                if (MasterVolumeControl.DefaultDevice == null)
                 {
                     Debug.Console(1, this, "AllDevices as IBasicVolumeControls");
                     foreach (var d in DeviceManager.AllDevices)
@@ -55,14 +90,10 @@ namespace PepperDash.Essentials.DspRoom
                 }
                 else
                     Debug.Console(1, this, "DefaultAudioDevice {0}", PropertiesConfig.DefaultAudioKey);
-
-                if (DefaultAudioDevice is IBasicVolumeControls)
-                    DefaultVolumeControls = DefaultAudioDevice as IBasicVolumeControls;
-                else if (DefaultAudioDevice is IHasVolumeDevice)
-                    DefaultVolumeControls = (DefaultAudioDevice as IHasVolumeDevice).VolumeDevice;
-                else
-                    Debug.Console(1, this, "DefaultVolumeControls not set");
-                CurrentVolumeControls = DefaultVolumeControls;
+                
+                MasterVolumeControl.Initialize();
+                foreach (var v in VolumeControlList)
+                    v.Value.Initialize();
             }
             catch (Exception e)
             {
@@ -83,10 +114,6 @@ namespace PepperDash.Essentials.DspRoom
         public override bool CustomActivate()
         {
             Debug.Console(1, this, "CustomActivate -- Volumes");
-            //Debug.Console(1, this, "PropertiesConfig {0}= null", PropertiesConfig == null ? "=" : "!");
-            //Debug.Console(1, this, "PropertiesConfig.Volumes {0}= null", PropertiesConfig.Volumes == null ? "=" : "!");
-            //Debug.Console(1, this, "PropertiesConfig.Volumes.Master {0}= null", PropertiesConfig.Volumes.Master == null ? "=" : "!");
-            //Debug.Console(1, this, "PropertiesConfig.Volumes.Master.Level: {0}", PropertiesConfig.Volumes.Master.Level);
             this.DefaultVolume = (ushort)(PropertiesConfig.Volumes.Master.Level * 65535 / 100);
             //Debug.Console(1, this, "DefaultVolume {0}", DefaultVolume);
 
@@ -109,11 +136,125 @@ namespace PepperDash.Essentials.DspRoom
             SetDefaultLevels();
         }
 
+
+        #region audio
+
+        public ushort DefaultVolume { get; set; }
+
+        /// <summary>
+        /// Does what it says
+        /// </summary>
+        public override void SetDefaultLevels()
+        {
+            Debug.Console(1, this, "Restoring default levels");
+            var vc = MasterVolumeControl.CurrentControl as IBasicVolumeWithFeedback;
+            if (vc != null)
+                vc.SetVolume(DefaultVolume);
+            foreach (var v in VolumeControlList)
+            {
+                vc = v.Value.CurrentControl as IBasicVolumeWithFeedback;
+                if (vc != null)
+                    vc.SetVolume(DefaultVolume);
+            }
+        }
+
+        #endregion
+
+        #region IHasCurrentLevelInfoChange Members
+
+        // not sure if these are actually necessary
+        
+        //public string CurrentLevelInfoKey { get; set; }
+
+        /// <summary>
+        /// The LevelListItem last run - containing names and icons 
+        /// </summary>
+        public LevelListItem CurrentLevelInfo
+        {
+            get { return _CurrentLevelInfo; }
+            set
+            {
+                Debug.Console(0, this, "Setting CurrentLevelInfo: {0}", value.LevelKey);
+                if (value == _CurrentLevelInfo) return;
+
+                var handler = CurrentLevelChange;
+                // remove from in-use tracker, if so equipped
+                if (_CurrentLevelInfo != null && _CurrentLevelInfo.LevelDevice is IInUseTracking)
+                    (_CurrentLevelInfo.LevelDevice as IInUseTracking).InUseTracker.RemoveUser(this, "control");
+
+                if (handler != null)
+                    handler(_CurrentLevelInfo, ChangeType.WillChange);
+
+                _CurrentLevelInfo = value;
+
+                // add to in-use tracking
+                if (_CurrentLevelInfo != null && _CurrentLevelInfo.LevelDevice is IInUseTracking)
+                    (_CurrentLevelInfo.LevelDevice as IInUseTracking).InUseTracker.AddUser(this, "control");
+                if (handler != null)
+                    handler(_CurrentLevelInfo, ChangeType.DidChange);
+            }
+        }
+        LevelListItem _CurrentLevelInfo;
+
+        public event LevelInfoChangeHandler CurrentLevelChange;
+
+        /// <summary>
+        /// Sets the VolumeListKey property to the passed in value or the default if no value passed in
+        /// </summary>
+        /// <param name="sourceListKey"></param>
+        protected void SetVolumeListKey(string volumeListKey)
+        {
+            if (!string.IsNullOrEmpty(volumeListKey))
+            {
+                VolumeListKey = volumeListKey;
+            }
+            else
+            {
+                volumeListKey = _defaultVolumeListKey;
+            }
+        }
+        private void SetVolumeListKey()
+        {
+            if (!string.IsNullOrEmpty(PropertiesConfig.VolumeListKey))
+            {
+                SetVolumeListKey(PropertiesConfig.VolumeListKey);
+            }
+            else
+            {
+                SetVolumeListKey(Key);
+            }
+
+        }
+
+        /// <summary>
+        /// The config name of the source list
+        /// </summary>
+        /// 
+        protected string _VolumeListKey;
+        public string VolumeListKey
+        {
+            get
+            {
+                return _VolumeListKey;
+            }
+            private set
+            {
+                if (value != _VolumeListKey)
+                {
+                    _VolumeListKey = value;
+                }
+            }
+        }
+
+        protected const string _defaultVolumeListKey = "default";
+
+        #endregion
+
         #region implement EssentialsRoomBase
 
         protected override Func<bool> IsWarmingFeedbackFunc
         {
-            get 
+            get
             {
                 //throw new NotImplementedException(); 
                 return () => { return false; };
@@ -123,7 +264,7 @@ namespace PepperDash.Essentials.DspRoom
         protected override Func<bool> IsCoolingFeedbackFunc
         {
             get
-            {                
+            {
                 //throw new NotImplementedException(); 
                 return () => { return false; };
             }
@@ -155,55 +296,5 @@ namespace PepperDash.Essentials.DspRoom
         }
 
         #endregion //implement EssentialsRoomBase
-
-        #region audio
-
-        public event EventHandler<VolumeDeviceChangeEventArgs> CurrentVolumeDeviceChange;
-
-        public IBasicVolumeControls DefaultAudioDevice { get; private set; }
-        public IBasicVolumeControls DefaultVolumeControls { get; private set; }
-
-        public ushort DefaultVolume { get; set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public IBasicVolumeControls CurrentVolumeControls
-        {
-            get { return _CurrentAudioDevice; }
-            set
-            {
-                if (value == _CurrentAudioDevice) return;
-
-                var oldDev = _CurrentAudioDevice;
-                // derigister this room from the device, if it can
-                if (oldDev is IInUseTracking)
-                    (oldDev as IInUseTracking).InUseTracker.RemoveUser(this, "audio");
-                var handler = CurrentVolumeDeviceChange;
-                if (handler != null)
-                    CurrentVolumeDeviceChange(this, new VolumeDeviceChangeEventArgs(oldDev, value, ChangeType.WillChange));
-                _CurrentAudioDevice = value;
-                if (handler != null)
-                    CurrentVolumeDeviceChange(this, new VolumeDeviceChangeEventArgs(oldDev, value, ChangeType.DidChange));
-                // register this room with new device, if it can
-                if (_CurrentAudioDevice is IInUseTracking)
-                    (_CurrentAudioDevice as IInUseTracking).InUseTracker.AddUser(this, "audio");
-            }
-        }
-        IBasicVolumeControls _CurrentAudioDevice;
-
-        /// <summary>
-        /// Does what it says
-        /// </summary>
-        public override void SetDefaultLevels()
-        {
-            Debug.Console(1, this, "Restoring default levels");
-            var vc = CurrentVolumeControls as IBasicVolumeWithFeedback;
-            if (vc != null)
-                vc.SetVolume(DefaultVolume);
-        }
-        
-        #endregion
-
     }
 }
