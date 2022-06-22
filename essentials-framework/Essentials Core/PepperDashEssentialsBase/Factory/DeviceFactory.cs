@@ -147,7 +147,15 @@ namespace PepperDash.Essentials.Core
                     CheckForSecrets(jProp);
                 }
 
-                Debug.Console(2, "typeName = {0}", typeName);
+                Debug.Console(2, "typeName is = {0}", typeName);
+                //if(!FactoryMethods.ContainsKey(typeName))
+                //{
+                //    Debug.Console(2, "DeviceFactory.FactoryMethods did not find {0}", typeName);
+                //    foreach(var f in FactoryMethods)
+                //        Debug.Console(2, "DeviceFactory.FactoryMethods[{0}]", f.Key);
+                //}
+                //else
+                //    Debug.Console(2, "DeviceFactory.FactoryMethods returning FactoryMethod for {0}", typeName);
                 // Check for types that have been added by plugin dlls. 
                 return !FactoryMethods.ContainsKey(typeName) ? null : FactoryMethods[typeName].FactoryMethod(localDc);
             }

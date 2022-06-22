@@ -1,0 +1,66 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Newtonsoft.Json;
+using Crestron.SimplSharp;
+using PepperDash.Essentials.Room.Config;
+using CI.Essentials.Levels;
+
+namespace CI.Essentials.Audio
+{
+    public interface IAudioPropertiesConfig
+    {        
+        /// <summary>
+        /// The key of the default audio device for the main volume fader
+        /// </summary>
+        [JsonProperty("defaultAudioKey")]
+        string DefaultAudioKey { get; set; }
+
+        /// <summary>
+        /// Put VolumeList in the room config so it only affects room code
+        /// if we put it in the base config like sourceList then we'd have to modify
+        ///  EssentialsConfig which affects all room config types
+        /// 
+        /// example config...
+        ///"rooms": [
+        ///    {
+        ///    "key": "room1",
+        ///        "properties": {
+        ///            "volumeList": { 
+        ///                "level-01": {
+        ///                    "order": 1,
+        ///                    "levelKey": "qsysdsp-1--VolLevelControl01",
+        ///                    "label": "Volume",
+        ///                    "includeInVolumeList": true
+        ///                },
+        ///                "level-02": {
+        ///                    "order": 3,
+        ///                    "levelKey": "qsysdsp-1--MicLevelControl01",
+        ///                    "label": "Mic 1",
+        ///                    "includeInVolumeList": true
+        ///                }
+        ///            }
+        ///        }
+        ///    }
+        ///]
+        /// </summary>
+        [JsonProperty("volumeList")]
+        Dictionary<string, LevelListItem> VolumeList { get; set; }
+
+        /// <summary>
+        /// Not sure where this is used.
+        /// example config...
+        ///"rooms": [
+        ///    {
+        ///    "key": "room1",
+        ///        "properties": {
+        ///            "volumeListKey": "room1"
+        ///        }
+        ///    }
+        ///]
+        /// </summary>
+        [JsonProperty("volumeListKey")]
+        string VolumeListKey { get; set; }
+    }
+}

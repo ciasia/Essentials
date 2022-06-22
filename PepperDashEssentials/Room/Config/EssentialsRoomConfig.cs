@@ -15,6 +15,8 @@ using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.MinimalRoom;
 using PepperDash.Essentials.DmpsRoom;
 using PepperDash.Essentials.DspRoom;
+using CI.Essentials.CouncilChambers;
+//using PepperDash.Essentials.CouncilChambers;
 
 namespace PepperDash.Essentials.Room.Config
 {
@@ -28,7 +30,7 @@ namespace PepperDash.Essentials.Room.Config
 		{
 			var typeName = roomConfig.Type.ToLower();
 
-            Debug.Console(0, Debug.ErrorLogLevel.Notice, "GetRoomObject: {0}", typeName);
+            Debug.Console(0, Debug.ErrorLogLevel.Notice, "$$$$$$ GetRoomObject: {0}", typeName);
             // Try local factories first
             Device newDev = null;
 
@@ -40,7 +42,7 @@ namespace PepperDash.Essentials.Room.Config
                 Debug.Console(0, Debug.ErrorLogLevel.Notice, "Returning roomObject from device manager");
                 return newDev;
             }
-            Debug.Console(0, Debug.ErrorLogLevel.Notice, "Looking for room type class for the roomObject");
+            Debug.Console(0, Debug.ErrorLogLevel.Notice, "$$$$$$ Looking for room type class for the roomObject");
 
 			if (typeName == "huddle")
 			{
@@ -82,12 +84,20 @@ namespace PepperDash.Essentials.Room.Config
             }
             if (typeName == "councilchambers")
             {
-                return new EssentialsCouncilChambers(roomConfig);
+                Debug.Console(0, Debug.ErrorLogLevel.Notice, "Getting {0} object", typeName);
+                var room_ =  new EssentialsCouncilChambers(roomConfig);
+                if(room_ == null)
+                    Debug.Console(0, Debug.ErrorLogLevel.Notice, "EssentialsCouncilChambers {0} is null", typeName);
+                else
+                    Debug.Console(0, Debug.ErrorLogLevel.Notice, "EssentialsCouncilChambers {0} created", typeName);
+                    return room_;
             }
             //if (typeName == "hello world")
             //{
             //    return new EssentialsHelloWorld(roomConfig);
             //}
+              
+            Debug.Console(0, Debug.ErrorLogLevel.Notice, "Room type {0} NOT found, returning null", typeName);
 
 		    return null;
 		}

@@ -463,7 +463,7 @@ namespace PepperDash.Essentials
         /// </summary>
         public void LoadRooms()
         {
-            Debug.Console(0, Debug.ErrorLogLevel.Notice, "LoadRooms");
+            Debug.Console(0, Debug.ErrorLogLevel.Notice, "$$$$$$$$ LoadRooms");
 
             if (ConfigReader.ConfigObject.Rooms == null)
             {

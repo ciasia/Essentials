@@ -14,6 +14,7 @@ using PepperDash.Essentials.Core.PageManagers;
 using PepperDash.Essentials.MinimalRoom;
 using PepperDash.Essentials.DmpsRoom;
 using PepperDash.Essentials.DspRoom;
+using CI.Essentials.CouncilChambers;
 
 namespace PepperDash.Essentials
 {
@@ -352,8 +353,17 @@ namespace PepperDash.Essentials
                 //mainDriver.AvDriver = avDriver;
                 //avDriver.CurrentRoom = room as IEssentialsDmpsRoom;
             }
+            else if (room is IEssentialsCouncilChambers)
+            {
+                Debug.Console(0, this, "Adding Council Chambers Room AV driver");
+                var avDriver = new EssentialsCouncilChambersMainInterfaceDriver(mainDriver, _propertiesConfig);
+                avDriver.DefaultRoomKey = roomKey;
+                mainDriver.AvDriver = avDriver;
+                avDriver.CurrentRoom = room as IEssentialsCouncilChambers;
+            }
             else if (room is IEssentialsRoom) // a room that doesn't fall under the previous cases, most likely a plugin
             {
+                Debug.Console(0, this, "Adding default Room IEssentialsRoom AV driver");
                 Debug.Console(0, this, "TODO [  ] Add code for plugin style AvFunctionsDriver driver for room '{0}'", roomKey);
 
                 // Screen Saver Driver
