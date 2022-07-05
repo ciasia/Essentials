@@ -11,6 +11,7 @@ using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 
 using CI.Essentials.Audio;
+using CI.Essentials.Video;
 
 namespace CI.Essentials.CouncilChambers
 {
@@ -19,6 +20,15 @@ namespace CI.Essentials.CouncilChambers
         public EssentialsCouncilChambersPropertiesConfig PropertiesConfig { get; private set; }
 
         public AudioController audio { get; private set; }
+        public VideoController video { get; private set; }
+
+        /// <summary>
+        /// Timer used for informing the UIs of a shutdown
+        /// </summary>        
+
+        public SecondsCountdownTimer PowerChangingTimer { get; private set; }
+        public int PowerOffSeconds { get; private set; }
+        public int WarmUpSeconds { get; private set; }
 
         #region constructor
 
@@ -33,7 +43,8 @@ namespace CI.Essentials.CouncilChambers
                     (config.Properties.ToString());
 
                 audio = new AudioController(PropertiesConfig);
-
+                video = new VideoController();
+                
                 InitializeRoom();
             }
             catch (Exception e)
@@ -47,6 +58,7 @@ namespace CI.Essentials.CouncilChambers
             try
             {
                 Debug.Console(1, this, "InitializeRoom");
+                //PowerChangingTimer = new SecondsCountdownTimer(Key + "-powering-timer");
             }
             catch (Exception e)
             {
@@ -54,28 +66,72 @@ namespace CI.Essentials.CouncilChambers
             }
         }
 
+        private void ShutDownComplete()
+        {
+        }
         #endregion // constructor
+
+        void ShutdownPromptTimer_HasStarted(object sender, EventArgs e)
+        {
+            Debug.Console(0, this, "ShutdownPromptTimer_HasStarted: {0}", e);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        //void CancelPowerOffTimer()
+        //{
+        //    Debug.Console(1, "{0}, CancelPowerOffTimer", classname);
+        //    if (PowerOffTimer != null)
+        //    {
+        //        PowerOffTimer.Stop();
+        //        PowerOffTimer = null;
+        //    }
+        //}
 
         #region EssentialsRoomBase implementation
 
         protected override void EndShutdown()
         {
+            Debug.Console(1, this, "EndShutdown");
             SetDefaultLevels();
+            //if (!PowerChangingTimer.IsRunningFeedback.BoolValue)
+            //{
+            //    Debug.Console(1, this, "Starting PowerChangingTimer");
+            //    PowerChangingTimer.Start();
+            //}
         }
 
         protected override Func<bool> IsCoolingFeedbackFunc
         {
-            get { return () => { return false; }; }
+            get
+            {
+                Debug.Console(1, this, "IsCoolingFeedbackFunc {0}", ShutdownPromptTimer.IsRunningFeedback.BoolValue);
+                return () => { return ShutdownPromptTimer.IsRunningFeedback.BoolValue; };
+                //return () => { return false; };
+            }
         }
 
         protected override Func<bool> IsWarmingFeedbackFunc
         {
-            get { return () => { return false; }; }
+            get
+            {
+                Debug.Console(1, this, "IsWarmingFeedbackFunc");
+                return () => { return false; };
+            }
         }
 
         protected override Func<bool> OnFeedbackFunc
         {
-            get { return () => { return false; }; }
+            get {
+                //OnFeedback = new BoolFeedback(() => { return true; });
+                return () => 
+                {
+                    Debug.Console(1, this, "OnFeedbackFunc: {0}", OnFeedback.BoolValue);
+                    //return OnFeedback.BoolValue;
+                    return true;
+                }; 
+            }
         }
 
         public override void PowerOnToDefaultOrLastSource()

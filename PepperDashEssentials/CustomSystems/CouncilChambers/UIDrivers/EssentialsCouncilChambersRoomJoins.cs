@@ -63,16 +63,31 @@ namespace CI.Essentials.CouncilChambers
         public static ushort[] COMBINE = { 133, 134 };
         public static ushort[] CONFIDENTIAL = { 136, 137 };
 
+        public static ushort[] LOGO = { 138, 139 };
+
         public static ushort VOL_MUTE = 141;
+        public static ushort CONFIRM_YES = 142;
+        public static ushort CONFIRM_NO = 143;
+        public static ushort COUNTDOWN_VIS = 144;
+
+        public static ushort VIDEO_MATRIX = 151;
+        public static ushort SCHEDULE = 152;
+
+        public static ushort MATRIX_AUDIO = 161;
+        public static ushort MATRIX_VIDEO = 162;
+        public static ushort MATRIX_ENTER = 163;
+        public static ushort MATRIX_CANCEL = 164;
     }
     public class CoP_AnaJoins
     {
         public static ushort VOL_PROG = 1;
+        public static ushort COUNTDOWN_BAR = 521;
     }
     public class CoP_SerJoins
     {
         public static ushort ROOM_NAME = 1;
         public static ushort ROOM_MODE = 2;
+        public static ushort CONFIRM_TXT = 4;
     }
     public class CoP_SmartJoins
     {
@@ -80,6 +95,10 @@ namespace CI.Essentials.CouncilChambers
         public const ushort AUDIO_SOURCES = 2;
         public const ushort MODES = 4;
         public const ushort OPERTOR_MENU = 5;
+        //moved to CI.Essentials.UI
+        //public const ushort faderSrl = 4200;
+        //public const ushort vidMatrixInputsSrl = 4201;
+        //public const ushort vidMatrixOutputsSrl = 4202;
     }
 
 }

@@ -57,6 +57,28 @@ namespace CI.Essentials.Levels
             }
         }
 
+        public SubpageReferenceListLevelItem(uint index, SubpageReferenceList owner,
+            LevelListItem levelItem, Action<ushort> levelAction, Action<bool> toggleAction,
+            Action<bool> levelUpAction, Action<bool> levelDownAction)
+            : base(index, owner)
+        {
+             try
+            {
+                LevelItem = levelItem;
+                owner.GetUShortOutputSig(index, 1).UserObject = new Action<ushort>(levelAction);
+                owner.GetBoolFeedbackSig(index, 1).UserObject = new Action<bool>(toggleAction);
+                owner.StringInputSig(index, 1).StringValue = levelItem.Label;
+
+                owner.GetBoolFeedbackSig(index, 2).UserObject = new Action<bool>(levelUpAction);
+                owner.GetBoolFeedbackSig(index, 3).UserObject = new Action<bool>(levelDownAction);
+            }
+             catch (Exception e)
+             {
+                 Debug.Console(1, "SubpageReferenceListLevelItem[{0}] ERROR: {1}", index, e.Message);
+             }
+
+        }
+
         public void RegisterForLevelChange(IHasCurrentLevelInfoChange room)
         {
             _room = room;

@@ -129,13 +129,18 @@
     <Compile Include="Bridges\JoinMaps\SetTopBoxControllerJoinMap.cs" />
     <Compile Include="Bridges\JoinMaps\StatusSignControllerJoinMap.cs" />
     <Compile Include="Bridges\JoinMaps\SystemMonitorJoinMap.cs" />
+    <Compile Include="CustomSystems\CI_UIJoins.cs" />
     <Compile Include="CustomSystems\CouncilChambers\Functions\Audio\AudioController.cs" />
     <Compile Include="CustomSystems\CouncilChambers\Functions\Audio\AudioDeviceSingleControlManager.cs" />
     <Compile Include="CustomSystems\CouncilChambers\Functions\Audio\IAudioControls.cs" />
     <Compile Include="CustomSystems\CouncilChambers\Functions\Audio\IAudioPropertiesConfig.cs" />
+    <Compile Include="CustomSystems\CouncilChambers\Functions\IPINPropertiesConfig.cs" />
     <Compile Include="CustomSystems\CouncilChambers\Functions\Levels\LevelListItem.cs" />
     <Compile Include="CustomSystems\CouncilChambers\Functions\Levels\SubpageReferenceListLevelItem.cs" />
+    <Compile Include="CustomSystems\CouncilChambers\Functions\Video\VideoController.cs" />
     <Compile Include="CustomSystems\CouncilChambers\Room\Config\EssentialsCouncilChambersPropertiesConfig.cs" />
+    <Compile Include="CustomSystems\CouncilChambers\Room\Types\interfaces\IEssentialsConnectableRoomDriver.cs" />
+    <Compile Include="CustomSystems\CouncilChambers\UIDrivers\ShutdownFunctionDriver.cs" />
     <Compile Include="CustomSystems\CouncilChambers\UIDrivers\EssentialsCouncilChambersRoomJoins.cs" />
     <Compile Include="CustomSystems\CouncilChambers\Room\Types\EssentialsCouncilChambers.cs" />
     <Compile Include="CustomSystems\CouncilChambers\Room\Types\interfaces\IEssentialsAudioRoom.cs" />
@@ -143,7 +148,9 @@
     <Compile Include="CustomSystems\CouncilChambers\UIDrivers\AudioPanelFunctionsDriver.cs" />
     <Compile Include="CustomSystems\CouncilChambers\UIDrivers\AudioPanelFunctionsJoins.cs" />
     <Compile Include="CustomSystems\CouncilChambers\UIDrivers\EssentialsCouncilChambersMainInterfaceDriver.cs" />
-    <Compile Include="CustomSystems\CouncilChambers\UIDrivers\EssentialsCouncilChambersMenuDriver.cs" />
+    <Compile Include="CustomSystems\CouncilChambers\UIDrivers\VideoMatrixFunctionDriver.cs" />
+    <Compile Include="CustomSystems\CouncilChambers\UIDrivers\ZZZ_EssentialsCouncilChambersMenuDriver.cs" />
+    <Compile Include="CustomSystems\CouncilChambers\UIDrivers\PINFuctionDriver.cs" />
     <Compile Include="CustomSystems\DspRoom\AudioDeviceSingleControlManager.cs" />
     <Compile Include="CustomSystems\DspRoom\EssentialsDspRoom.cs" />
     <Compile Include="CustomSystems\DspRoom\EssentialsDspRoomJoins.cs" />
@@ -162,6 +169,7 @@
     <Compile Include="CustomSystems\MinimalRoom\IEssentialsMinimalRoom.cs" />
     <Compile Include="CustomSystems\MinimalRoom\EssentialsMinimalRoom.cs" />
     <Compile Include="CustomSystems\MinimalRoom\EssentialsMinimalRoomPanelAvFunctionsDriver.cs" />
+    <Compile Include="CustomSystems\Utilities.cs" />
     <Compile Include="Factory\DeviceFactory.cs" />
     <Compile Include="Devices\Amplifier.cs" />
     <Compile Include="ControlSystem.cs" />

@@ -52,7 +52,7 @@ namespace PepperDash.Essentials
         {
             var prevJoin = CurrentJoin;
             var wasShown = _IsShown;
-            //Debug.Console(2, "Trilist {0:X2}, interlock swapping {1} for {2}", TriList.ID, CurrentJoin, join);
+            Debug.Console(2, "Trilist {0:X2}, interlock swapping {1} for {2}", TriList.ID, CurrentJoin, join);
             if (CurrentJoin == join && TriList.BooleanInput[join].BoolValue)
                 return;
             SetButDontShow(join);

@@ -7,10 +7,11 @@ using Crestron.SimplSharp;
 using PepperDash.Essentials.Room.Config;
 using CI.Essentials.Levels;
 using CI.Essentials.Audio;
+using CI.Essentials.PIN;
 
 namespace CI.Essentials.CouncilChambers
 {
-    public class EssentialsCouncilChambersPropertiesConfig : EssentialsRoomPropertiesConfig, IAudioPropertiesConfig
+    public class EssentialsCouncilChambersPropertiesConfig : EssentialsRoomPropertiesConfig, IAudioPropertiesConfig, IPINPropertiesConfig
     {        
         /// <summary>
         /// The key of the default audio device for the main volume fader
@@ -63,5 +64,19 @@ namespace CI.Essentials.CouncilChambers
         /// </summary>
         [JsonProperty("volumeListKey")]
         public string VolumeListKey { get; set; }
+
+        /// <summary>
+        /// example config...
+        ///"rooms": [
+        ///    {
+        ///    "key": "room1",
+        ///        "properties": {
+        ///            "password": "1234"
+        ///        }
+        ///    }
+        ///]
+        /// </summary>
+        [JsonProperty("password")]
+        public string Password { get; set; }
     }
 }

@@ -9,26 +9,28 @@ using PepperDash.Essentials.Core;
 using PepperDash.Core;
 using CI.Essentials.CouncilChambers;
 using CI.Essentials.Levels;
+using CI.Essentials.Utilities;
 
 namespace CI.Essentials.Audio
 {
-    public class AudioPanelFunctionsDriver : PanelDriverBase
+    public class AudioPanelFunctionsDriver : PanelDriverBase, IEssentialsConnectableRoomDriver, IKeyed
     {
+        string IKeyed.Key { get { return "AudioUIDriver"; } }
+        //string Key = "AudioUIDriver";
         private IEssentialsAudioRoom _currentRoom;
 
         private SmartObject VolumeSO;
         public SubpageReferenceList VolumeSrl { get; set; }
         private uint _volumeListCount;
 
-        string classname = "AudioUIDriver";
-
         public AudioPanelFunctionsDriver(PanelDriverBase parent, CrestronTouchpanelPropertiesConfig config)
             : base(parent.TriList)
         {
+            Debug.Console(1, this, "Loading");
             VolumeSO = TriList.SmartObjects[AudioPanelFunctionsJoins.faderSrl];
-            Debug.Console(2, "{0}, VolumeSO {1}= null", classname, VolumeSO == null ? "=" : "!");
-            VolumeSrl = new SubpageReferenceList(TriList, AudioPanelFunctionsJoins.faderSrl, 2, 1, 1);
-            Debug.Console(2, "{0}, VolumeSrl {0}= null", classname, VolumeSrl == null ? "=" : "!");
+            Debug.Console(2, this, "VolumeSO".IsNullString(VolumeSO));
+            VolumeSrl = new SubpageReferenceList(TriList, AudioPanelFunctionsJoins.faderSrl, 4, 1, 1);
+            Debug.Console(2, this, "VolumeSrl".IsNullString(VolumeSrl));
         }
 
         /// <summary>
@@ -36,7 +38,7 @@ namespace CI.Essentials.Audio
         /// </summary>
         public override void Show()
         {
-            Debug.Console(1, "{0}, Show", classname);
+            Debug.Console(1, this, "Show");
 
             //ShowVolumeGauge = true;
 
@@ -58,28 +60,32 @@ namespace CI.Essentials.Audio
         /// <param name="key">The key name of the route to run</param>
         void SetVolume(string key, ushort value)
         {
-            Debug.Console(1, "{0}, UiLevelSet {1} {2}", classname, key, value);
+            Debug.Console(1, this, "UiLevelSet {0} {1}", key, value);
             var dev_ = _currentRoom.audio.VolumeControlList[key].CurrentControl as IBasicVolumeWithFeedback;
             if (dev_ != null)
                 dev_.SetVolume(value);
             else
-                Debug.Console(1, "{0}, CurrentVolumeControls == null", classname);
+                Debug.Console(2, this, "CurrentVolumeControls".IsNullString(dev_));
         }
 
         void MuteToggle(string key)
         {
-            Debug.Console(1, "{0}, UiLevelMuteToggle {1}", key);
+            Debug.Console(1, this, "UiLevelMuteToggle {1}", key);
             var dev_ = _currentRoom.audio.VolumeControlList[key].CurrentControl as IBasicVolumeWithFeedback;
             if (dev_ != null)
                 dev_.MuteToggle();
             else
-                Debug.Console(1, "{0}, CurrentVolumeControls == null", classname);
+                Debug.Console(1, this, "CurrentVolumeControls".IsNullString(dev_));
         }
 
+        /// <summary>
+        /// Volume SRL - connect the joins to funcs
+        /// </summary>
         void RefreshVolumeList()
         {
             try
             {
+                Debug.Console(1, this, "RefreshVolumeList");
                 var config = _currentRoom.audio.config.VolumeList;
                 var volList = config.OrderBy(kv => kv.Value.Order);
 
@@ -90,35 +96,37 @@ namespace CI.Essentials.Audio
                 {
                     var volConfig = kvp.Value;
                     var key_ = volConfig.LevelKey;
-                    Debug.Console(1, "{0}, RefreshVolumeList {1}, {2} {3}", classname, key_, volConfig.Label, volConfig.IncludeInVolumeList);
-                    Debug.Console(2, "{0}, RefreshVolumeList, VolumeSrl {1}= null", classname, VolumeSrl == null ? "=" : "!");
+                    Debug.Console(1, this, "RefreshVolumeList {0}, {1} {2}", key_, volConfig.Label, volConfig.IncludeInVolumeList);
+                    Debug.Console(2, this, "VolumeSrl".IsNullString(VolumeSrl));
                     // Skip sources marked as not included, and filter list of non-sharable sources when in call
                     // or on share screen
                     if (!volConfig.IncludeInVolumeList)
                     {
-                        Debug.Console(1, "{0}, Skipping {1}", classname, volConfig.Label);
+                        Debug.Console(1, this, "Skipping {0}", volConfig.Label);
                         continue;
                     }
                     if (_currentRoom.audio.VolumeControlList.ContainsKey(key_))
                     {
                         var dev_ = _currentRoom.audio.VolumeControlList[key_].CurrentControl;
-                        Debug.Console(2, "{0}, RefreshVolumeList - VolumeControlList[{1}].CurrentControl {2}= null", classname, key_, dev_ == null ? "=" : "!");
+                        Debug.Console(2, this, "RefreshVolumeList - VolumeControlList[{0}].{1}", key_, "CurrentControl".IsNullString(dev_));
                         if (dev_ != null) // connect buttons
                         {
                             var fbDev_ = dev_ as IBasicVolumeWithFeedback;
-                            //Debug.Console(2, "{0}, RefreshVolumeList, {1} fbDev_ {2}= null", classname, key_, fbDev_ == null ? "=" : "!");
+                            Debug.Console(2, this, "RefreshVolumeList, {0} {1}", key_, "CurrentControl".IsNullString(fbDev_));
                             var level_ = new SubpageReferenceListLevelItem(i, VolumeSrl, volConfig,
-                                  u => { fbDev_.SetVolume(u); },
-                                  b => { if (!b) fbDev_.MuteToggle(); }
+                                  v => { fbDev_.SetVolume(v); },
+                                  b => { if (!b) fbDev_.MuteToggle(); },
+                                  u => { fbDev_.VolumeUp(u); },
+                                  d => { fbDev_.VolumeDown(d); }
                                   );
-                            //Debug.Console(2, "{0}, RefreshVolumeList, {1} level_ {2}= null", classname, key_, level_ == null ? "=" : "!");
+                            Debug.Console(2, this, "RefreshVolumeList, {0} {1}", key_, "level_".IsNullString(level_));
                             VolumeSrl.AddItem(level_); // add to the SRL
-                            //Debug.Console(2, "{0}, RefreshVolumeList, {1} VolumeSrl added level", classname, key_);
+                            Debug.Console(2, this, "RefreshVolumeList, {0} VolumeSrl added level", key_);
                             level_.RegisterForLevelChange(_currentRoom.audio);
-                            //Debug.Console(2, "{0}, RefreshVolumeList, {0} RegisterForLevelChange", classname, key_);
-                            string joinKey_ = String.Format("Item {0} Visible", i);
-                            //Debug.Console(2, "{0}, RefreshVolumeList Setting SmartObject {1}", classname, joinKey_);
-                            VolumeSO.BooleanInput[joinKey_].BoolValue = true;
+                            Debug.Console(2, this, "RefreshVolumeList, {0} RegisterForLevelChange", key_);
+                            string visibleKey_ = String.Format("Item {0} Visible", i);
+                            //Debug.Console(2, this, "RefreshVolumeList Setting SmartObject {1}", classname, joinKey_);
+                            VolumeSO.BooleanInput[visibleKey_].BoolValue = true;
 
                             if (fbDev_ == null) // this should catch both IBasicVolume and IBasicVolumeWithFeeback
                                 VolumeSrl.UShortInputSig(i, 1).UShortValue = (ushort)0;
@@ -130,10 +138,10 @@ namespace CI.Essentials.Audio
                             }
                         }
                         else
-                            Debug.Console(1, "{0}, CurrentVolumeControls {1} == null", classname, key_);
+                            Debug.Console(1, this, "CurrentVolumeControls".IsNullString(key_));
                     }
                     else
-                        Debug.Console(1, "{0}, VolumeControlList.ContainsKey({1}) == false", classname, key_);
+                        Debug.Console(1, this, "VolumeControlList.ContainsKey({0}) == false", key_);
                     i++;
                 }
                 _volumeListCount = (i - 1);
@@ -141,35 +149,44 @@ namespace CI.Essentials.Audio
             }
             catch (Exception e)
             {
-                Debug.Console(1, "{0}, RefreshVolumeList ERROR: {1}", classname, e.Message);
+                Debug.Console(1, this, "RefreshVolumeList ERROR: {0}", e.Message);
             }
         }
 
         /// <summary>
         /// Detaches the buttons and feedback from the room's current audio device
         /// </summary>
-        public void DisconnectCurrentRoom(IEssentialsAudioRoom room)
+        public void DisconnectCurrentRoom(IEssentialsRoom room)
         {
-            Debug.Console(1, "{0}, DisconnectCurrentRoom", classname);
-            _currentRoom = room;
-
-            if (_currentRoom != null)
+            Debug.Console(1, this, "DisconnectCurrentRoom");
+            try
             {
-                // Disconnect current room
-                room.audio.MasterVolumeDeviceChange -= this.CurrentRoom_CurrentMasterAudioDeviceChange;
-                room.audio.VolumeDeviceListChange -= this.CurrentRoom_CurrentAudioDeviceListChanged;
-                ClearAudioDeviceConnections();
+                _currentRoom = (IEssentialsAudioRoom)room;
+                //_currentRoom = room as IEssentialsAudioRoom;
+
+                if (_currentRoom != null)
+                {
+                    // Disconnect current room
+                    _currentRoom.audio.MasterVolumeDeviceChange -= this.CurrentRoom_CurrentMasterAudioDeviceChange;
+                    _currentRoom.audio.VolumeDeviceListChange -= this.CurrentRoom_CurrentAudioDeviceListChanged;
+                    ClearDeviceConnections();
+                }
+                else
+                    Debug.Console(1, this, "_currentRoom".IsNullString(_currentRoom));
             }
-            //else
-            //    Debug.Console(1, "{0}, CurrentRoom == null", classname);
+            catch (Exception e)
+            {
+                Debug.Console(1, this, "DisconnectCurrentRoom ERROR: {0}", e.Message);
+            }
+
         }
 
         /// <summary>
         /// Detaches the buttons and feedback from the room's current audio device
         /// </summary>
-        public void ClearAudioDeviceConnections()
+        public void ClearDeviceConnections()
         {
-            Debug.Console(1, "{0}, ClearAudioDeviceConnections", classname);
+            Debug.Console(1, this, "ClearDeviceConnections");
 
             TriList.ClearBoolSigAction(UIBoolJoin.VolumeUpPress);
             TriList.ClearBoolSigAction(UIBoolJoin.VolumeDownPress);
@@ -188,47 +205,55 @@ namespace CI.Essentials.Audio
         /// <summary>
         /// Attaches the buttons and feedback to the room's current audio device
         /// </summary>
-        public void ConnectCurrentRoom(IEssentialsAudioRoom room)
+        public void ConnectCurrentRoom(IEssentialsRoom room)
         {
-            Debug.Console(1, "{0}, ConnectCurrentRoom", classname);
-            _currentRoom = room;
-            //Debug.Console(1, "{0}, _CurrentRoom {1}= null", classname, _currentRoom == null ? "=" : "!");
-
-            if (_currentRoom != null)
+            Debug.Console(1, this, "ConnectCurrentRoom");
+            try
             {
-                Debug.Console(1, "{0}, subscribing to CurrentVolumeDeviceChange", classname);
-                room.audio.MasterVolumeDeviceChange += CurrentRoom_CurrentMasterAudioDeviceChange;
-                room.audio.VolumeDeviceListChange += CurrentRoom_CurrentAudioDeviceListChanged;
-                RefreshAudioDeviceConnections();
-            } 
+               _currentRoom = (IEssentialsAudioRoom)room;
+                //Debug.Console(1, this, "_CurrentRoom {1}= null", classname, _currentRoom == null ? "=" : "!");
 
+                if (_currentRoom != null)
+                {
+                    Debug.Console(1, this, "subscribing to CurrentVolumeDeviceChange");
+                    _currentRoom.audio.MasterVolumeDeviceChange += CurrentRoom_CurrentMasterAudioDeviceChange;
+                    _currentRoom.audio.VolumeDeviceListChange += CurrentRoom_CurrentAudioDeviceListChanged;
+                    RefreshDeviceConnections();
+                }
+                else
+                    Debug.Console(1, this, "_currentRoom".IsNullString(_currentRoom));
+            }
+            catch (Exception e)
+            {
+                Debug.Console(1, this, "ConnectCurrentRoom ERROR: {0}", e.Message);
+            }        
         }
     
         /// <summary>
         /// Attaches the buttons and feedback to the room's current audio device
         /// </summary>
-        public void RefreshAudioDeviceConnections()
+        public void RefreshDeviceConnections()
         {
-            Debug.Console(1, "{0}, RefreshAudioDeviceConnections", classname);
+            Debug.Console(1, this, "RefreshDeviceConnections");
             if (_currentRoom != null)
             {
                 var dev = _currentRoom.audio.MasterVolumeControl.CurrentControl;
                 if (dev != null) // connect buttons
                 {
-                    Debug.Console(1, "{0}, CurrentVolumeControls connect buttons", classname);
+                    Debug.Console(1, this, "CurrentVolumeControls connect buttons");
                     TriList.SetBoolSigAction(UIBoolJoin.VolumeUpPress, VolumeUpPress);
                     TriList.SetBoolSigAction(UIBoolJoin.VolumeDownPress, VolumeDownPress);
                     TriList.SetSigFalseAction(UIBoolJoin.Volume1ProgramMutePressAndFB, dev.MuteToggle);
                 }
                 else
-                    Debug.Console(1, "{0}, CurrentVolumeControls == null", classname);
+                    Debug.Console(1, this, "CurrentVolumeControls".IsNullString(dev));
 
                 var fbDev = dev as IBasicVolumeWithFeedback;
                 if (fbDev == null) // this should catch both IBasicVolume and IBasicVolumeWithFeeback
                     TriList.UShortInput[UIUshortJoin.VolumeSlider1Value].UShortValue = 0;
                 else
                 {
-                    Debug.Console(1, "{0}, connect feedbacks", classname);
+                    Debug.Console(1, this, "connect feedbacks");
                     // slider
                     TriList.SetUShortSigAction(UIUshortJoin.VolumeSlider1Value, fbDev.SetVolume);
                     // feedbacks
@@ -241,16 +266,17 @@ namespace CI.Essentials.Audio
             }
         }
 
+
         /// <summary>
         /// Handler for when the room's volume control device changes
         /// </summary>
         void CurrentRoom_CurrentMasterAudioDeviceChange(object sender, VolumeDeviceChangeEventArgs args)
         {
-            Debug.Console(1, "{0}, CurrentRoom_CurrentAudioDeviceChange", classname);
+            Debug.Console(1, this, "CurrentRoom_CurrentAudioDeviceChange");
             if (args.Type == ChangeType.WillChange)
-                ClearAudioDeviceConnections();
+                ClearDeviceConnections();
             else // did change
-                RefreshAudioDeviceConnections();
+                RefreshDeviceConnections();
         }
 
         /// <summary>
@@ -258,7 +284,7 @@ namespace CI.Essentials.Audio
         /// </summary>
         void CurrentRoom_CurrentAudioDeviceListChanged(object sender, VolumeDeviceChangeEventArgs args)
         {
-            Debug.Console(1, "{0}, CurrentRoom_CurrentAudioDeviceListChanged {1}", classname, args.NewDev.ToString());
+            Debug.Console(1, this, "CurrentRoom_CurrentAudioDeviceListChanged {0}", args.NewDev.ToString());
         }
 
         /// <summary>
@@ -295,7 +321,7 @@ namespace CI.Essentials.Audio
         /// <param name="state"></param>
         public void VolumeUpPress(bool state)
         {
-            Debug.Console(1, "{0}, VolumeUpPress {1}", classname, state);
+            Debug.Console(1, this, "VolumeUpPress {0}", state);
             // extend timeouts
             //if (ShowVolumeGauge)
             VolumeGaugeFeedback.BoolValue = state;
@@ -304,7 +330,7 @@ namespace CI.Essentials.Audio
             if (dev_ != null)
                 dev_.VolumeUp(state);
             else
-                Debug.Console(1, "{0}, CurrentVolumeControls == null", classname);
+                Debug.Console(1, this, "CurrentVolumeControls".IsNullString(dev_));
         }
 
         /// <summary>
@@ -313,7 +339,7 @@ namespace CI.Essentials.Audio
         /// <param name="state"></param>
         public void VolumeDownPress(bool state)
         {
-            Debug.Console(1, "{0}, VolumeDownPress {1}", classname, state);
+            Debug.Console(1, this, "VolumeDownPress {0}", state);
             // extend timeouts
             if (ShowVolumeGauge)
                 VolumeGaugeFeedback.BoolValue = state;
@@ -322,7 +348,7 @@ namespace CI.Essentials.Audio
             if (dev_ != null)
                 dev_.VolumeDown(state);
             else
-                Debug.Console(1, "{0}, CurrentVolumeControls == null", classname);
+                Debug.Console(1, this, "CurrentVolumeControls".IsNullString(dev_));
         }
 
         #endregion

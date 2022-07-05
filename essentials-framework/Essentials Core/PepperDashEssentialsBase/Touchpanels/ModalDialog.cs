@@ -117,7 +117,8 @@ namespace PepperDash.Essentials.Core
 			string message, string button1Text,
 			string button2Text, bool showGauge, bool showCancel, Action<uint> completeAction)
 		{
-			// Don't reset dialog if visible now
+            Debug.Console(1, "PresentModalDialog, ModalIsVisible: {0}", ModalIsVisible);
+            // Don't reset dialog if visible now
 			if (!ModalIsVisible)
 			{
 				ModalCompleteAction = completeAction;
@@ -153,7 +154,8 @@ namespace PepperDash.Essentials.Core
                 TriList.BooleanInput[CancelVisibleJoin].BoolValue = showCancel;
 
 				//Reveal and activate
-				TriList.BooleanInput[ModalVisibleJoin].BoolValue = true;
+                Debug.Console(1, "PresentModalDialog, show join: {0}", ModalVisibleJoin);
+                TriList.BooleanInput[ModalVisibleJoin].BoolValue = true;
 
                 WakePanel();
 
@@ -194,12 +196,14 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         public void HideDialog()
         {
+            Debug.Console(1, "PresentModalDialog, hide join: {0}", ModalVisibleJoin);
             TriList.BooleanInput[ModalVisibleJoin].BoolValue = false;
         }
 
 		// When the modal is cleared or times out, clean up the various bits
 		void OnModalComplete(uint buttonNum)
 		{
+            Debug.Console(1, "OnModalComplete, buttonNum: {0}", buttonNum);
 			TriList.BooleanInput[ModalVisibleJoin].BoolValue = false;
 
             var action = ModalCompleteAction;

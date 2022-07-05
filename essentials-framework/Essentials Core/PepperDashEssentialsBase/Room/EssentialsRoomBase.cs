@@ -254,6 +254,7 @@ namespace PepperDash.Essentials.Core
                 ShutdownPromptTimer.SecondsToCount = ShutdownPromptSeconds;
             else if (type == eShutdownType.Vacancy)
                 ShutdownPromptTimer.SecondsToCount = ShutdownVacancySeconds;
+            Debug.Console(0, this, "ShutdownPromptTimer Started. Type: {0}.  Seconds: {1}", ShutdownType, ShutdownPromptTimer.SecondsToCount);
             ShutdownType = type;
             ShutdownPromptTimer.Start();
 
