@@ -8,10 +8,11 @@ using PepperDash.Essentials.Room.Config;
 using CI.Essentials.Levels;
 using CI.Essentials.Audio;
 using CI.Essentials.PIN;
+using CI.Essentials.Modes;
 
 namespace CI.Essentials.CouncilChambers
 {
-    public class EssentialsCouncilChambersPropertiesConfig : EssentialsRoomPropertiesConfig, IAudioPropertiesConfig, IPINPropertiesConfig
+    public class EssentialsCouncilChambersPropertiesConfig : EssentialsRoomPropertiesConfig, IAudioPropertiesConfig, IPINPropertiesConfig, IModesPropertiesConfig
     {        
         /// <summary>
         /// The key of the default audio device for the main volume fader
@@ -78,5 +79,30 @@ namespace CI.Essentials.CouncilChambers
         /// </summary>
         [JsonProperty("password")]
         public string Password { get; set; }
+
+        [JsonProperty("modeList")]
+        public Dictionary<string, ModeListItem> ModeList { get; set; }
+
+        /// <summary>
+        /// Not sure where this is used.
+        /// example config...
+        ///"rooms": [
+        ///    {
+        ///    "key": "room1",
+        ///        "properties": {
+        ///            "ModeListKey": "room1"
+        ///        }
+        ///    }
+        ///]
+        /// </summary>
+        [JsonProperty("modeListKey")]
+        public string ModeListKey { get; set; }
+        
+        /// <summary>
+        /// The key of the default Mode device for the main Mode
+        /// </summary>
+        [JsonProperty("defaultModeKey")]
+        public string DefaultModeKey { get; set; }
+
     }
 }

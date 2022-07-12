@@ -8,51 +8,46 @@ using Crestron.SimplSharpPro.UI;
 
 using PepperDash.Essentials.Core;
 using PepperDash.Core;
+using CI.Essentials.Modes;
+using CI.Essentials.UI;
+using PepperDash.Essentials.Core.SmartObjects;
 
 namespace CI.Essentials.Levels
 {
     /// <summary>
     /// The handler type for a Room's LevelInfoChange
     /// </summary>
-    public delegate void LevelInfoChangeHandler(/*EssentialsRoomBase room,*/ LevelListItem info, ChangeType type);
+    public delegate void ModenfoChangeHandler(ModeListItem info, ChangeType type);
 
-    public class SubpageReferenceListLevelItem : SubpageReferenceListItem
+    public class DynamicListModeItem: DynamicListItem
     {
-        public LevelListItem LevelItem { get; private set; }
+        public ModeListItem ModeItem { get; private set; }
 
         private IHasCurrentLevelInfoChange _room;
 
-        public SubpageReferenceListLevelItem(uint index, SubpageReferenceList owner,
-            LevelListItem levelItem, Action<ushort> levelAction, Action<bool> toggleAction)
+        public DynamicListModeItem(uint index, SmartObjectDynamicList owner,
+            LevelListItem modeItem, Action<bool> selectAction)
             : base(index, owner)
         {
             try
             {
-                //Debug.Console(2, "SubpageReferenceListLevelItem[{0}] levelItem{1}", index, levelItem == null ? " is NULL" : "");
-                LevelItem = levelItem;
-                //Debug.Console(2, "SubpageReferenceListLevelItem[{0}] owner{1}", index, owner == null ? " is NULL" : "");
-                //Debug.Console(2, "SubpageReferenceListLevelItem[{0}] a-sig{1}", index, owner.GetUShortOutputSig(index, 1) == null ? " is NULL" : "");
-                //Debug.Console(2, "SubpageReferenceListLevelItem[{0}] levelAction{1}", index, levelAction == null ? " is NULL" : "");
+                ModeItem = modeItem;
                 owner.GetUShortOutputSig(index, 1).UserObject = new Action<ushort>(levelAction);
-                //Debug.Console(2, "SubpageReferenceListLevelItem[{0}] d-sig{1}", index, owner.GetBoolFeedbackSig(index, 1) == null ? " is NULL" : "");
-                //Debug.Console(2, "SubpageReferenceListLevelItem[{0}] toggleAction{1}", index, toggleAction == null ? " is NULL" : "");
                 owner.GetBoolFeedbackSig(index, 1).UserObject = new Action<bool>(toggleAction);
-                //Debug.Console(2, "SubpageReferenceListLevelItem[{0}] s-sig{1}", index, owner.StringInputSig(index, 1) == null ? " is NULL" : "");
-                //Debug.Console(2, "SubpageReferenceListLevelItem[{0}] levelItem.Label{1}", index, String.IsNullOrEmpty(levelItem.Label) ? " is NULL" : ": levelItem.Label");
                 owner.StringInputSig(index, 1).StringValue = levelItem.Label;
             }
             catch (Exception e)
             {
-                Debug.Console(1, "SubpageReferenceListLevelItem[{0}] ERROR: {1}", index, e.Message);
+                Debug.Console(1, "DynamicListModeItem[{0}] ERROR: {1}", index, e.Message);
             }
         }
 
-        public SubpageReferenceListLevelItem(uint index, SubpageReferenceList owner,
+        public DynamicListModeItem(uint index, SubpageReferenceList owner,
             LevelListItem levelItem, Action<ushort> levelAction, Action<bool> toggleAction,
             Action<bool> levelUpAction, Action<bool> levelDownAction)
             : base(index, owner)
         {
-             try
+            try
             {
                 LevelItem = levelItem;
                 owner.GetUShortOutputSig(index, 1).UserObject = new Action<ushort>(levelAction);
@@ -62,10 +57,10 @@ namespace CI.Essentials.Levels
                 owner.GetBoolFeedbackSig(index, 2).UserObject = new Action<bool>(levelUpAction);
                 owner.GetBoolFeedbackSig(index, 3).UserObject = new Action<bool>(levelDownAction);
             }
-             catch (Exception e)
-             {
-                 Debug.Console(1, "SubpageReferenceListLevelItem[{0}] ERROR: {1}", index, e.Message);
-             }
+            catch (Exception e)
+            {
+                Debug.Console(1, "DynamicListModeItem[{0}] ERROR: {1}", index, e.Message);
+            }
 
         }
 

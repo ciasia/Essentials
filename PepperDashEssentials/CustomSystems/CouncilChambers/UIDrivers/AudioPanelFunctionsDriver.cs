@@ -10,6 +10,7 @@ using PepperDash.Core;
 using CI.Essentials.CouncilChambers;
 using CI.Essentials.Levels;
 using CI.Essentials.Utilities;
+using CI.Essentials.UI;
 
 namespace CI.Essentials.Audio
 {
@@ -27,9 +28,9 @@ namespace CI.Essentials.Audio
             : base(parent.TriList)
         {
             Debug.Console(1, this, "Loading");
-            VolumeSO = TriList.SmartObjects[AudioPanelFunctionsJoins.faderSrl];
+            VolumeSO = TriList.SmartObjects[SmartJoins.faderSrl];
             Debug.Console(2, this, "VolumeSO".IsNullString(VolumeSO));
-            VolumeSrl = new SubpageReferenceList(TriList, AudioPanelFunctionsJoins.faderSrl, 4, 1, 1);
+            VolumeSrl = new SubpageReferenceList(TriList, SmartJoins.faderSrl, 4, 1, 1);
             Debug.Console(2, this, "VolumeSrl".IsNullString(VolumeSrl));
         }
 

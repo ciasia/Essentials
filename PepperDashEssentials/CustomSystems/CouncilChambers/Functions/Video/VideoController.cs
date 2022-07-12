@@ -77,24 +77,21 @@ namespace CI.Essentials.Video
                     Debug.Console(0, this, "VolumeControls");
                     foreach (var o in dmps_.VolumeControls)
                     {
-                        if (o.Key != null)
-                        {
-                            Debug.Console(0, this, "VolumeControls key: {0}", o.Key);
-                            Debug.Console(0, this, "VolumeControls Output.Number: {0}", o.Value.Output.Number);
-                            Debug.Console(0, this, "VolumeControls OutputVolume.Name: {0}", o.Value.Output.Volume.Name);
-                            Debug.Console(0, this, "VolumeControls OutputVolume.Number: {0}", o.Value.Output.Volume.Number);
-                        }
+                        Debug.Console(0, this, "VolumeControls key: {0}", o.Key);
+                        Debug.Console(0, this, "VolumeControls Output.Number: {0}", o.Value.Output.Number);
+                        Debug.Console(0, this, "VolumeControls OutputVolume.Name: {0}", o.Value.Output.Volume.Name);
+                        Debug.Console(0, this, "VolumeControls OutputVolume.Number: {0}", o.Value.Output.Volume.Number);
                     }
                     Debug.Console(0, this, "Microphones {0}", dmps_.Microphones);
                 }
                 if (dev_ is IRoutingNumericWithFeedback)
                 {
                     Debug.Console(1, this, "[{0}] is IRoutingNumericWithFeedback", dev_.Key);
-                    var switcher_ = dev_ as IRoutingNumericWithFeedback;
-                    foreach (var i in switcher_.InputPorts)
-                    {
-                        Debug.Console(1, this, "[{0}] input {1}: {2}", switcher_.Name, i.Key, i.Port.ToString());
-                    }
+                    //var switcher_ = dev_ as IRoutingNumericWithFeedback;
+                    //foreach (var i in switcher_.InputPorts)
+                    //{
+                    //    Debug.Console(1, this, "[{0}] input {1}: {2}", switcher_.Name, i.Key, i.Port.ToString());
+                    //}
                 }
             }
         }

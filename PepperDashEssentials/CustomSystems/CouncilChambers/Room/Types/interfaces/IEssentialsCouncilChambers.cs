@@ -6,6 +6,7 @@ using Crestron.SimplSharp;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using CI.Essentials.Audio;
+using CI.Essentials.Modes;
 
 namespace CI.Essentials.CouncilChambers
 {
@@ -16,7 +17,7 @@ namespace CI.Essentials.CouncilChambers
     //    : IKeyName//, IReconfigurableDevice, IRunDefaultPresentRoute, IEnvironmentalControls
     //{
     //}
-    public interface IEssentialsCouncilChambers : IEssentialsRoom, IEssentialsAudioRoom //, IAudioControls
+    public interface IEssentialsCouncilChambers : IEssentialsRoom, IEssentialsAudioRoom, IEssentialsModalRoom //, IAudioControls
     {
         EssentialsCouncilChambersPropertiesConfig PropertiesConfig { get; }
         //AudioController audio { get; }

@@ -20,5 +20,6 @@ namespace CI.Essentials.UI
         public const ushort faderSrl = 4200;
         public const ushort vidMatrixInputsSrl = 4201;
         public const ushort vidMatrixOutputsSrl = 4202;
+        public const ushort systemModesList = 4203;
     }
 }

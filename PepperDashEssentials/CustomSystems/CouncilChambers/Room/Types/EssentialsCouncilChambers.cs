@@ -12,6 +12,7 @@ using PepperDash.Essentials.Core.Config;
 
 using CI.Essentials.Audio;
 using CI.Essentials.Video;
+using CI.Essentials.Modes;
 
 namespace CI.Essentials.CouncilChambers
 {
@@ -21,11 +22,11 @@ namespace CI.Essentials.CouncilChambers
 
         public AudioController audio { get; private set; }
         public VideoController video { get; private set; }
+        public ModesController modes { get; private set; }
 
         /// <summary>
         /// Timer used for informing the UIs of a shutdown
         /// </summary>        
-
         public SecondsCountdownTimer PowerChangingTimer { get; private set; }
         public int PowerOffSeconds { get; private set; }
         public int WarmUpSeconds { get; private set; }
@@ -44,6 +45,7 @@ namespace CI.Essentials.CouncilChambers
 
                 audio = new AudioController(PropertiesConfig);
                 video = new VideoController();
+                modes = new ModesController(PropertiesConfig);
                 
                 InitializeRoom();
             }

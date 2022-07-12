@@ -11,6 +11,7 @@ using CI.Essentials.Audio;
 using CI.Essentials.Power;
 using CI.Essentials.PIN;
 using CI.Essentials.Utilities;
+using CI.Essentials.Modes;
 
 namespace CI.Essentials.CouncilChambers
 {
@@ -53,6 +54,7 @@ namespace CI.Essentials.CouncilChambers
         AudioPanelFunctionsDriver audio_driver;
         ShutdownFunctionDriver power_off_driver;
         PINFunctionDriver pin_driver;
+        SystemModeFunctionDriver mode_driver;
 
         /// <summary>
         /// 
@@ -76,6 +78,9 @@ namespace CI.Essentials.CouncilChambers
             pin_driver = new PINFunctionDriver(this);
             ChildDrivers.Add(pin_driver);
             pin_driver.UserEvent += new PINFunctionDriver.UserEventHandler(pin_driver_UserEvent);
+
+            mode_driver = new SystemModeFunctionDriver(this);
+            ChildDrivers.Add(mode_driver);
 
             _roomIdx = new Dictionary<string, ushort> // todo, get the base config and extract room names
             {
